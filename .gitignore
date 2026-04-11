@@ -1,0 +1,11 @@
+.DS_Store
+*.swp
+*.swo
+*~
+node_modules/
+.vscode/
+.idea/
+# local preview artifacts
+site_preview.png
+verify_screenshot.png
+explorer_crop.png

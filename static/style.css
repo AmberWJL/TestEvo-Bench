@@ -1,0 +1,725 @@
+/* =============================================================
+   TestEvo-Bench — academic / minimal stylesheet
+   Inspired by the Nerfies project page. No framework.
+============================================================= */
+
+:root {
+  --bg: #fdfdfc;
+  --bg-alt: #f7f5ef;
+  --ink: #1a1a1a;
+  --ink-soft: #3a3a3a;
+  --muted: #6b6b6b;
+  --muted-2: #9a968f;
+  --border: #e6e4df;
+  --border-strong: #cfccc4;
+  --panel: #ffffff;
+  --del-bg: rgba(179, 58, 58, 0.18);
+  --del-bg-soft: rgba(179, 58, 58, 0.10);
+  --del-fg: #7a2a2a;
+  --add-bg: rgba(46, 125, 50, 0.14);
+  --add-bg-soft: rgba(46, 125, 50, 0.08);
+  --accent: #1f4e79;
+  --mono: "SFMono-Regular", "JetBrains Mono", "Menlo", "Consolas", monospace;
+  --serif: "Source Serif Pro", "Libre Caslon Text", Georgia, serif;
+  --sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: var(--accent);
+  text-decoration: none;
+  border-bottom: 1px solid rgba(31, 78, 121, 0.25);
+}
+a:hover { border-bottom-color: var(--accent); }
+
+h1, h2, h3 {
+  font-family: var(--serif);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+
+h2 {
+  font-size: 1.55rem;
+  margin: 0 0 18px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+code {
+  font-family: var(--mono);
+  font-size: 0.92em;
+  background: var(--bg-alt);
+  padding: 1px 5px;
+  border-radius: 3px;
+}
+
+.container {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 0 28px;
+}
+
+section { padding: 48px 0; }
+section + section { border-top: 1px solid var(--border); }
+
+/* No separator line between abstract and dataset overview */
+#stats { border-top: none; }
+/* Extra breathing room between dataset overview and explorer, and no divider line */
+#explorer { padding-top: 72px; border-top: none; }
+
+/* ===========================================================
+   HERO
+=========================================================== */
+.hero {
+  padding: 72px 0 56px;
+  text-align: center;
+  background: linear-gradient(180deg, #faf9f5 0%, var(--bg) 100%);
+  border-bottom: none;
+}
+/* Gray line above Track 1, matching the container width used by h2 separators.
+   Leaves breathing room above (between hero nav pills) and below (before Track 1). */
+#abstract::before {
+  content: "";
+  display: block;
+  border-top: 1px solid var(--border);
+  margin: 0 0 48px;
+}
+.hero .title {
+  font-family: var(--serif);
+  font-weight: 600;
+  font-size: 3.2rem;
+  margin: 0 0 12px;
+  letter-spacing: -0.015em;
+}
+.hero .subtitle {
+  font-family: var(--serif);
+  font-size: 1.25rem;
+  color: var(--ink-soft);
+  margin: 0 0 28px;
+  line-height: 1.45;
+}
+.hero .subtitle em { font-style: italic; color: #444; }
+
+.authors {
+  font-size: 1.02rem;
+  color: var(--ink-soft);
+  margin-bottom: 4px;
+}
+.author { white-space: nowrap; }
+.affiliations {
+  font-size: 0.9rem;
+  color: var(--muted);
+  margin-bottom: 26px;
+}
+
+.links {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.pill {
+  display: inline-block;
+  padding: 7px 16px;
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
+  background: var(--panel);
+  color: var(--ink-soft);
+  font-size: 0.92rem;
+  font-family: var(--sans);
+  transition: all 120ms;
+}
+.pill:hover {
+  background: var(--ink);
+  color: var(--bg);
+  border-color: var(--ink);
+}
+
+/* ===========================================================
+   HERO FIGURE — code animations (two tracks)
+=========================================================== */
+.hero-figure { padding-top: 40px; padding-bottom: 20px; }
+.hero-figure.embedded { padding-top: 8px; padding-bottom: 0; }
+.overview-heading {
+  font-family: var(--serif);
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 28px 0 10px;
+  color: var(--ink);
+}
+
+.track-block {
+  width: 100%;
+  margin-bottom: 40px;
+}
+.track-heading {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  margin-bottom: 14px;
+  padding-left: 4px;
+  flex-wrap: wrap;
+}
+.track-heading h2 {
+  font-family: var(--serif);
+  font-weight: 600;
+  font-size: 1.25rem;
+  margin: 0;
+  border: none;
+  padding: 0;
+}
+.track-heading .desc {
+  font-family: var(--sans);
+  font-size: 0.92rem;
+  color: var(--muted);
+}
+
+.stage {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 24px;
+  align-items: stretch;
+}
+
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+  /* extra top padding so there's breathing room between the
+     track badge and the first line of code */
+  padding: 56px 0 20px;
+  font-family: var(--mono);
+  font-size: 12.5px;
+  min-height: 280px;
+  position: relative;
+  overflow: hidden;
+}
+.panel-label {
+  position: absolute;
+  top: 10px;
+  right: 14px;
+  font-family: var(--sans);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.track-badge {
+  position: absolute;
+  top: 9px;
+  left: 14px;
+  font-family: var(--sans);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--muted);
+  background: #faf9f6;
+}
+
+/* horizontal padding lives on .code so that individual .ln elements
+   can use width: fit-content when highlighted (so the diff background
+   only covers the text characters, not the full panel width) */
+.code { padding: 0 20px; }
+.ln {
+  display: block;
+  white-space: pre;
+  line-height: 1.65;
+  height: 1.65em;
+  padding: 0;
+  font-family: var(--mono);
+  font-size: 12.5px;
+}
+
+/* Any animated .ln (diff highlight) is sized to its own content width
+   so the red/green background hugs the text characters, matching how
+   `---` / `+++` lines look in a unified diff. */
+.ln.prod-old, .ln.prod-new,
+.ln.test-old, .ln.test-new,
+.ln.prod-upd-old, .ln.prod-upd-new {
+  width: fit-content;
+  max-width: 100%;
+}
+
+.kw   { color: #7b4fa1; }
+.ty   { color: #1f5a99; }
+.fn   { color: #0d6b5a; }
+.str  { color: #a5511a; }
+.num  { color: #a5511a; }
+.cmt  { color: #8a8a8a; font-style: italic; }
+.anno { color: #6b6b00; }
+
+.multi { display: block; overflow: hidden; }
+.multi .ln { padding-left: 20px; padding-right: 20px; }
+
+.arrow {
+  width: 54px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: var(--muted);
+}
+.arrow svg { width: 48px; height: 24px; }
+
+/* ----- TRACK 1 keyframes (test_update) ----- */
+.t1 .prod-old { animation: t1ProdOld 10s infinite; }
+.t1 .prod-new { animation: t1ProdNew 10s infinite; }
+.t1 .test-old { animation: t1TestOld 10s infinite; }
+.t1 .test-new { animation: t1TestNew 10s infinite; }
+
+@keyframes t1ProdOld {
+  0%, 10%   { background: transparent; color: inherit; text-decoration: none; }
+  20%, 100% { background: var(--del-bg); color: var(--del-fg); text-decoration: line-through; }
+}
+@keyframes t1ProdNew {
+  0%, 20%   { height: 0; max-height: 0; opacity: 0; background: transparent; overflow: hidden; }
+  35%, 100% { height: 1.65em; max-height: 1.65em; opacity: 1; background: var(--add-bg); }
+}
+@keyframes t1TestOld {
+  0%, 50%   { background: transparent; color: inherit; text-decoration: none; }
+  60%, 100% { background: var(--del-bg); color: var(--del-fg); text-decoration: line-through; }
+}
+@keyframes t1TestNew {
+  0%, 60%   { height: 0; max-height: 0; opacity: 0; background: transparent; overflow: hidden; }
+  75%, 100% { height: 1.65em; max-height: 1.65em; opacity: 1; background: var(--add-bg); }
+}
+
+/* ----- TRACK 2 keyframes (test_generation) ----- */
+.t2 .prod-upd-old { animation: t2UpdOld     10s infinite; }
+.t2 .prod-upd-new { animation: t2UpdNew     10s infinite; }
+.t2 .prod-ins     { animation: t2ProdInsert 10s infinite; }
+.t2 .test-ins     { animation: t2TestInsert 10s infinite; }
+
+@keyframes t2UpdOld {
+  0%,  10%  { background: transparent; color: inherit; text-decoration: none; }
+  20%, 100% { background: var(--del-bg); color: var(--del-fg); text-decoration: line-through; }
+}
+@keyframes t2UpdNew {
+  0%,  20%  { height: 0; max-height: 0; opacity: 0; background: transparent; overflow: hidden; }
+  40%, 100% { height: 1.65em; max-height: 1.65em; opacity: 1; background: var(--add-bg); }
+}
+@keyframes t2ProdInsert {
+  0%,  20%  { height: 0; max-height: 0; opacity: 0; background: transparent; overflow: hidden; }
+  40%, 100% { height: auto; max-height: 8em; opacity: 1; background: var(--add-bg-soft); }
+}
+@keyframes t2TestInsert {
+  0%,  55%  { height: 0; max-height: 0; opacity: 0; background: transparent; overflow: hidden; }
+  75%, 100% { height: auto; max-height: 14em; opacity: 1; background: var(--add-bg-soft); }
+}
+
+/* ===========================================================
+   TEXT SECTIONS
+=========================================================== */
+.text-section p, .text-section li {
+  color: var(--ink-soft);
+  font-size: 1.02rem;
+  max-width: 780px;
+}
+/* Abstract paragraph spans the full container width, per the
+   design spec. Other text sections keep the 780px reading width. */
+#abstract p { max-width: none; }
+.text-section ol { padding-left: 22px; }
+.text-section ol li { margin-bottom: 8px; }
+.section-lead {
+  color: var(--muted);
+  max-width: 780px;
+  font-size: 0.97rem;
+  margin-top: -6px;
+  margin-bottom: 22px;
+}
+
+/* ===========================================================
+   HEADLINE STATS
+=========================================================== */
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+.stat {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 18px 20px;
+}
+.stat .label {
+  font-size: 0.78rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-family: var(--sans);
+}
+.stat .value {
+  font-family: var(--serif);
+  font-weight: 600;
+  font-size: 1.8rem;
+  line-height: 1.1;
+  margin: 6px 0 2px;
+  color: var(--ink);
+}
+.stat .sub {
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+.stat-loading {
+  grid-column: 1 / -1;
+  color: var(--muted);
+  text-align: center;
+  padding: 16px;
+}
+
+/* ===========================================================
+   CONTROLS (time slider, chips, search)
+=========================================================== */
+/* Two-row layout: the time window slider spans the full width of
+   the controls panel on its own row, then the track chips and
+   search box sit side-by-side underneath. */
+.controls {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-areas:
+    "tracks search"
+    "time   time";
+  gap: 16px 22px;
+  align-items: end;
+  margin-bottom: 20px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 18px 20px 20px;
+}
+.control-group { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.control-group.time-window { grid-area: time; }
+.control-group.tracks      { grid-area: tracks; }
+.control-group.search      { grid-area: search; }
+.control-group.grow { min-width: 0; }
+.control-group > label {
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-family: var(--sans);
+}
+
+.time-slider-wrap {
+  position: relative;
+  height: 30px;
+}
+/* single background track drawn by the container so neither range input
+   overlays the other's thumb near the endpoints */
+.time-slider-wrap::before {
+  content: "";
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  top: 50%;
+  height: 3px;
+  margin-top: -1.5px;
+  background: var(--border-strong);
+  border-radius: 2px;
+  pointer-events: none;
+  z-index: 0;
+}
+.time-slider-wrap input[type="range"] {
+  position: absolute;
+  left: 0;
+  right: 0;
+  width: 100%;
+  pointer-events: none;
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  height: 30px;
+  z-index: 2;
+}
+.time-slider-wrap input[type="range"]::-webkit-slider-runnable-track {
+  height: 3px;
+  background: transparent;
+  border: none;
+}
+.time-slider-wrap input[type="range"]::-moz-range-track {
+  height: 3px;
+  background: transparent;
+  border: none;
+}
+.time-slider-wrap input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  pointer-events: all;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--ink);
+  border: 2px solid var(--bg);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+  margin-top: -7px;
+  cursor: pointer;
+  position: relative;
+  z-index: 3;
+}
+.time-slider-wrap input[type="range"]::-moz-range-thumb {
+  pointer-events: all;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--ink);
+  border: 2px solid var(--bg);
+  cursor: pointer;
+  position: relative;
+  z-index: 3;
+}
+.time-range-label {
+  display: flex;
+  justify-content: space-between;
+  gap: 6px;
+  font-size: 0.86rem;
+  color: var(--ink-soft);
+  font-family: var(--mono);
+}
+
+.track-toggles { display: flex; gap: 8px; }
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
+  font-size: 0.86rem;
+  cursor: pointer;
+  background: var(--panel);
+  user-select: none;
+}
+.chip input { margin: 0; }
+.chip:has(input:checked) {
+  background: var(--ink);
+  color: var(--bg);
+  border-color: var(--ink);
+}
+
+#repo-search {
+  font-family: var(--sans);
+  font-size: 0.95rem;
+  padding: 8px 12px;
+  border: 1px solid var(--border-strong);
+  border-radius: 4px;
+  background: var(--panel);
+  color: var(--ink);
+  outline: none;
+}
+#repo-search:focus { border-color: var(--accent); }
+
+/* ===========================================================
+   EXPLORER TABLE
+=========================================================== */
+.explorer-table,
+.leaderboard-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.92rem;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.explorer-table thead th,
+.leaderboard-table thead th {
+  text-align: left;
+  font-family: var(--sans);
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-weight: 600;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-alt);
+}
+.explorer-table tbody td,
+.leaderboard-table tbody td {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+.explorer-table tbody tr:last-child td,
+.leaderboard-table tbody tr:last-child td { border-bottom: none; }
+.explorer-table tbody tr.repo-row { cursor: pointer; transition: background 120ms; }
+.explorer-table tbody tr.repo-row:hover { background: var(--bg-alt); }
+
+.col-expand  { width: 24px; }
+.col-repo    { width: auto; }
+.col-total   { width: 90px;  text-align: right !important; font-family: var(--mono); font-weight: 600; color: var(--ink); }
+.col-num     { width: 140px; text-align: right !important; font-family: var(--mono); white-space: nowrap; }
+.col-dates   { width: 240px; white-space: nowrap; font-family: var(--mono); font-size: 0.84rem; color: var(--muted); }
+
+.explorer-table td.col-num,
+.explorer-table th.col-num,
+.explorer-table td.col-total,
+.explorer-table th.col-total { text-align: right; }
+
+.repo-row .repo-name { font-weight: 500; color: var(--ink); }
+.repo-row .repo-sub  { font-size: 0.78rem; color: var(--muted); }
+.caret {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-right: 2px solid var(--muted);
+  border-bottom: 2px solid var(--muted);
+  transform: rotate(-45deg);
+  transition: transform 150ms;
+  margin-top: 2px;
+}
+tr.repo-row.open .caret { transform: rotate(45deg); }
+
+.rev-pair-row td {
+  background: var(--bg-alt);
+  padding: 10px 14px 14px;
+  font-size: 0.86rem;
+}
+.rev-pair-row .rev-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.rev-pair-row .rev-table th {
+  text-align: left;
+  color: var(--muted);
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-weight: 600;
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--border);
+}
+.rev-pair-row .rev-table td {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+  font-family: var(--mono);
+  font-size: 0.84rem;
+}
+.rev-pair-row .rev-table tr:last-child td { border-bottom: none; }
+.track-tag {
+  display: inline-block;
+  font-family: var(--sans);
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--border-strong);
+  color: var(--muted);
+}
+.track-tag.tu { background: #eef3fa; color: #1f4e79; border-color: #c9d9ee; }
+.track-tag.tg { background: #f2f7ee; color: #2e6b2c; border-color: #cadfc3; }
+
+.test-methods {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.test-methods .m {
+  color: var(--ink-soft);
+  font-family: var(--mono);
+}
+.diff-link {
+  font-family: var(--sans);
+  font-size: 0.82rem;
+}
+
+.loading, .empty {
+  text-align: center;
+  color: var(--muted);
+  padding: 28px !important;
+  font-style: italic;
+}
+
+/* ===========================================================
+   LEADERBOARD
+=========================================================== */
+.lb-tabs { display: flex; gap: 4px; margin-bottom: 12px; }
+.lb-tab {
+  font-family: var(--sans);
+  font-size: 0.88rem;
+  padding: 8px 16px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-bottom: none;
+  color: var(--muted);
+  cursor: pointer;
+  border-radius: 4px 4px 0 0;
+}
+.lb-tab.active {
+  color: var(--ink);
+  background: var(--bg-alt);
+  border-color: var(--border-strong);
+  font-weight: 600;
+}
+
+.leaderboard-table td { font-family: var(--mono); font-size: 0.88rem; }
+.leaderboard-table td:nth-child(2) { font-family: var(--sans); }
+.leaderboard-table .model-name { font-weight: 500; color: var(--ink); }
+.leaderboard-table .org { color: var(--muted); font-size: 0.78rem; }
+.leaderboard-table .metric-pending { color: var(--muted-2); }
+
+.metric-defs { margin-top: 16px; font-size: 0.9rem; color: var(--ink-soft); }
+.metric-defs summary { cursor: pointer; color: var(--muted); font-family: var(--sans); }
+.metric-defs dl { margin-top: 10px; }
+.metric-defs dt { font-family: var(--mono); font-weight: 600; margin-top: 8px; }
+.metric-defs dd { margin: 2px 0 0 0; color: var(--ink-soft); }
+
+/* ===========================================================
+   BIBTEX + FOOTER
+=========================================================== */
+.bibtex {
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 18px 20px;
+  font-family: var(--mono);
+  font-size: 0.88rem;
+  color: var(--ink-soft);
+  overflow-x: auto;
+  white-space: pre;
+}
+
+.site-footer {
+  text-align: center;
+  color: var(--muted);
+  font-size: 0.85rem;
+  padding: 28px 0 60px;
+  border-top: 1px solid var(--border);
+}
+
+/* ===========================================================
+   RESPONSIVE
+=========================================================== */
+@media (max-width: 860px) {
+  .hero .title { font-size: 2.4rem; }
+  .stage { grid-template-columns: 1fr; }
+  .arrow { display: none; }
+  .stat-grid { grid-template-columns: repeat(2, 1fr); }
+  .controls {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "time"
+      "tracks"
+      "search";
+  }
+  .col-dates { display: none; }
+}
