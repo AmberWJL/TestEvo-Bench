@@ -40,114 +40,6 @@
      ABSTRACT + animated overview example
 ============================================================= -->
 <section id="abstract" class="container text-section">
-  <div class="hero-figure embedded">
-  <div class="track-block t1">
-    <div class="track-heading">
-      <h2>Track 1 — Test Update</h2>
-      <span class="desc">Production code changes; the paired test must be updated to compile, exercise the new behavior, and pass.</span>
-    </div>
-    <div class="stage">
-
-      <div class="panel">
-        <span class="track-badge">production</span>
-        <span class="panel-label">Envelope.java</span>
-        <div class="code">
-          <div class="ln"><span class="anno">@Override</span></div>
-          <div class="ln"><span class="kw">public</span> <span class="ty">double</span> <span class="fn">distance</span>(<span class="ty">Envelope</span> other) {</div>
-          <div class="ln">    <span class="kw">if</span> (<span class="fn">isEmpty</span>() || other.<span class="fn">isEmpty</span>())</div>
-          <div class="ln prod-old">        <span class="kw">return</span> <span class="num">0</span>;</div>
-          <div class="ln prod-new">        <span class="kw">return</span> <span class="ty">Double</span>.NaN;</div>
-          <div class="ln">    <span class="kw">double</span> dx = <span class="fn">computeDx</span>(other);</div>
-          <div class="ln">    <span class="kw">double</span> dy = <span class="fn">computeDy</span>(other);</div>
-          <div class="ln">    <span class="kw">return</span> <span class="ty">Math</span>.<span class="fn">sqrt</span>(dx*dx + dy*dy);</div>
-          <div class="ln">}</div>
-        </div>
-      </div>
-
-      <div class="arrow">
-        <svg viewBox="0 0 48 24" fill="none" stroke="currentColor" stroke-width="1.4">
-          <line x1="2" y1="12" x2="42" y2="12"/>
-          <polyline points="34,5 44,12 34,19"/>
-        </svg>
-      </div>
-
-      <div class="panel">
-        <span class="track-badge">test update</span>
-        <span class="panel-label">TestEnvelope.java</span>
-        <div class="code">
-          <div class="ln"><span class="anno">@Test</span></div>
-          <div class="ln"><span class="kw">public</span> <span class="ty">void</span> <span class="fn">distanceOnEmpty</span>() {</div>
-          <div class="ln">    <span class="ty">Envelope</span> a = <span class="kw">new</span> <span class="ty">Envelope</span>();</div>
-          <div class="ln">    <span class="ty">Envelope</span> b = <span class="kw">new</span> <span class="ty">Envelope</span>(<span class="num">0</span>,<span class="num">0</span>,<span class="num">1</span>,<span class="num">1</span>);</div>
-          <div class="ln test-old">    <span class="fn">assertEquals</span>(<span class="num">0.0</span>, a.<span class="fn">distance</span>(b), <span class="num">1e-9</span>);</div>
-          <div class="ln test-new">    <span class="fn">assertTrue</span>(<span class="ty">Double</span>.<span class="fn">isNaN</span>(a.<span class="fn">distance</span>(b)));</div>
-          <div class="ln">}</div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="track-block t2">
-    <div class="track-heading">
-      <h2>Track 2 — Test Generation</h2>
-      <span class="desc">Production code changes; a new test must be written to compile, exercise the change, and pass.</span>
-    </div>
-    <div class="stage">
-
-      <div class="panel">
-        <span class="track-badge">production</span>
-        <span class="panel-label">RedisCacheManager.java</span>
-        <div class="code">
-          <div class="ln"><span class="kw">public class</span> <span class="ty">RedisCacheManager</span> {</div>
-          <div class="ln"> </div>
-          <div class="ln">    <span class="kw">private</span> <span class="ty">RedisManager</span> redisManager;</div>
-          <div class="ln"> </div>
-          <div class="ln">    <span class="kw">public</span> &lt;K,V&gt; <span class="ty">Cache</span>&lt;K,V&gt; <span class="fn">getCache</span>(<span class="ty">String</span> name) {</div>
-          <div class="ln prod-upd-old">        <span class="kw">return new</span> <span class="ty">RedisCache</span>&lt;&gt;(name);</div>
-          <div class="ln prod-upd-new">        <span class="kw">return new</span> <span class="ty">RedisCache</span>&lt;&gt;(redisManager, name);</div>
-          <div class="ln">    }</div>
-          <div class="multi prod-ins">
-            <div class="ln"> </div>
-            <div class="ln">    <span class="kw">public void</span> <span class="fn">setRedisManager</span>(<span class="ty">RedisManager</span> m) {</div>
-            <div class="ln">        <span class="kw">this</span>.redisManager = m;</div>
-            <div class="ln">    }</div>
-          </div>
-          <div class="ln">}</div>
-        </div>
-      </div>
-
-      <div class="arrow">
-        <svg viewBox="0 0 48 24" fill="none" stroke="currentColor" stroke-width="1.4">
-          <line x1="2" y1="12" x2="42" y2="12"/>
-          <polyline points="34,5 44,12 34,19"/>
-        </svg>
-      </div>
-
-      <div class="panel">
-        <span class="track-badge">test generation</span>
-        <span class="panel-label">RedisCacheManagerTest.java</span>
-        <div class="code">
-          <div class="ln"><span class="kw">public class</span> <span class="ty">RedisCacheManagerTest</span> {</div>
-          <div class="ln"> </div>
-          <div class="ln">    <span class="kw">private</span> <span class="ty">RedisCacheManager</span> mgr;</div>
-          <div class="ln">    <span class="kw">private</span> <span class="ty">RedisManager</span> redisManager;</div>
-          <div class="multi test-ins">
-            <div class="ln"> </div>
-            <div class="ln">    <span class="anno">@Test</span></div>
-            <div class="ln">    <span class="kw">public void</span> <span class="fn">testInit</span>() {</div>
-            <div class="ln">        mgr = <span class="kw">new</span> <span class="ty">RedisCacheManager</span>();</div>
-            <div class="ln">        mgr.<span class="fn">setRedisManager</span>(redisManager);</div>
-            <div class="ln">        <span class="ty">Cache</span>&lt;<span class="ty">String</span>,<span class="ty">String</span>&gt; c = mgr.<span class="fn">getCache</span>(<span class="str">"foo"</span>);</div>
-            <div class="ln">        <span class="fn">assertNotNull</span>(c);</div>
-            <div class="ln">    }</div>
-          </div>
-          <div class="ln">}</div>
-        </div>
-      </div>
-    </div>
-  </div>
-  </div>
-
   <h2>Abstract</h2>
   <p>
     In real software, tests and the production code they exercise are written and
@@ -190,36 +82,20 @@
 </section>
 
 <!-- =============================================================
-     EXPLORER
+     LEADERBOARD
 ============================================================= -->
-<section id="explorer" class="container">
-  <h2>Explorer</h2>
+<section id="leaderboard" class="container">
+  <h2>Leaderboard</h2>
   <p class="section-lead">
-    Browse every repository in the benchmark. Drag the time slider to restrict
-    the view to a <code>rev2</code> date window — task counts and the
-    leaderboard below both recompute to that window. Click a row to see its
-    rev pairs and per-pair GitHub diff links.
+    Seeded with placeholder rows — real submissions will replace them as
+    they land. See the <a href="#submit">How&nbsp;to&nbsp;submit</a>
+    section below. Drag the time slider to restrict scoring to a
+    <code>rev2</code> date window; for a contamination-aware report, pick
+    a window that ends at or before your model's pre-training cutoff.
   </p>
 
   <div class="controls">
-    <div class="control-group tracks">
-      <label>Tracks</label>
-      <div class="track-toggles">
-        <label class="chip">
-          <input type="checkbox" id="toggle-test_update" checked>
-          <span>test update</span>
-        </label>
-        <label class="chip">
-          <input type="checkbox" id="toggle-test_generation" checked>
-          <span>test generation</span>
-        </label>
-      </div>
-    </div>
-    <div class="control-group search grow">
-      <label>Search repo</label>
-      <input type="text" id="repo-search" placeholder="e.g. shiro-redis, Esri, OpenAPITools">
-    </div>
-    <div class="control-group time-window">
+    <div class="control-group time-window grow">
       <label>Time window (rev2 date)</label>
       <div class="time-slider-wrap">
         <input type="range" id="time-slider-min" min="0" max="100" value="0">
@@ -233,36 +109,10 @@
     </div>
   </div>
 
-  <table class="explorer-table" id="explorer-table">
-    <thead>
-      <tr>
-        <th class="col-expand"></th>
-        <th class="col-repo">Repository</th>
-        <th class="col-num">test update</th>
-        <th class="col-num">test generation</th>
-        <th class="col-dates">Date range</th>
-      </tr>
-    </thead>
-    <tbody id="explorer-tbody">
-      <tr><td colspan="5" class="loading">Loading tasks…</td></tr>
-    </tbody>
-  </table>
-</section>
-
-<!-- =============================================================
-     LEADERBOARD
-============================================================= -->
-<section id="leaderboard" class="container">
-  <h2>Leaderboard</h2>
-  <p class="section-lead">
-    Seeded with placeholder rows — real submissions will replace them as they
-    land. See the <a href="#submit">How&nbsp;to&nbsp;submit</a> section below.
-    Numbers are computed over the currently-selected time window above.
-  </p>
-
   <div class="lb-tabs">
     <button class="lb-tab active" data-track="test_update">test update</button>
     <button class="lb-tab" data-track="test_generation">test generation</button>
+    <span class="lb-window-note" id="lb-window-note"></span>
   </div>
 
   <table class="leaderboard-table" id="leaderboard-table">
@@ -288,6 +138,54 @@
     <summary>Metric definitions</summary>
     <dl id="metric-defs-dl"></dl>
   </details>
+</section>
+
+<!-- =============================================================
+     EXPLORER
+============================================================= -->
+<section id="explorer" class="container">
+  <h2>Explorer</h2>
+  <p class="section-lead">
+    Browse every repository in the benchmark. The repo list honors the
+    time window selected above — only tasks whose <code>rev2</code> date
+    falls inside the window are counted. Click a row to see its rev
+    pairs and per-pair GitHub diff links.
+  </p>
+
+  <div class="controls">
+    <div class="control-group tracks">
+      <label>Tracks</label>
+      <div class="track-toggles">
+        <label class="chip">
+          <input type="checkbox" id="toggle-test_update" checked>
+          <span>test update</span>
+        </label>
+        <label class="chip">
+          <input type="checkbox" id="toggle-test_generation" checked>
+          <span>test generation</span>
+        </label>
+      </div>
+    </div>
+    <div class="control-group search grow">
+      <label>Search repo</label>
+      <input type="text" id="repo-search" placeholder="e.g. shiro-redis, Esri, OpenAPITools">
+    </div>
+  </div>
+
+  <table class="explorer-table" id="explorer-table">
+    <thead>
+      <tr>
+        <th class="col-expand"></th>
+        <th class="col-repo">Repository</th>
+        <th class="col-num">test update</th>
+        <th class="col-num">test generation</th>
+        <th class="col-dates">Date range</th>
+      </tr>
+    </thead>
+    <tbody id="explorer-tbody">
+      <tr><td colspan="5" class="loading">Loading tasks…</td></tr>
+    </tbody>
+  </table>
 </section>
 
 <!-- =============================================================

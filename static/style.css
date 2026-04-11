@@ -409,6 +409,18 @@ section + section { border-top: 1px solid var(--border); }
 .control-group.tracks      { grid-area: tracks; }
 .control-group.search      { grid-area: search; }
 .control-group.grow { min-width: 0; }
+
+/* Leaderboard only has the time-window control: collapse the grid to
+   a single row so the slider fills the panel width. */
+#leaderboard .controls {
+  grid-template-columns: 1fr;
+  grid-template-areas: "time";
+}
+/* Explorer has tracks + search (no time-window): collapse to a single row. */
+#explorer .controls {
+  grid-template-columns: auto 1fr;
+  grid-template-areas: "tracks search";
+}
 .control-group > label {
   font-size: 0.72rem;
   letter-spacing: 0.12em;
@@ -652,7 +664,23 @@ tr.repo-row.open .caret { transform: rotate(45deg); }
 /* ===========================================================
    LEADERBOARD
 =========================================================== */
-.lb-tabs { display: flex; gap: 4px; margin-bottom: 12px; }
+.lb-tabs { display: flex; gap: 4px; margin-bottom: 12px; align-items: flex-end; }
+.lb-window-note {
+  margin-left: auto;
+  padding: 0 6px 10px;
+  font-family: var(--sans);
+  font-size: 0.78rem;
+  color: var(--muted);
+  letter-spacing: 0.02em;
+}
+.lb-window-note code {
+  font-family: var(--mono);
+  color: var(--ink);
+  background: var(--panel);
+  padding: 1px 6px;
+  border-radius: 3px;
+  border: 1px solid var(--border);
+}
 .lb-tab {
   font-family: var(--sans);
   font-size: 0.88rem;
