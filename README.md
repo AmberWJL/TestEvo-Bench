@@ -1,5 +1,7 @@
 # LiveTestEvolBench — project site
 
+**Live site:** <https://amberwjl.github.io/Live-TestEvo-Bench/>
+
 Static site for **LiveTestEvolBench**, a live benchmark of co-evolving test
 and production code pairs mined from real open-source Java projects.
 
@@ -17,6 +19,34 @@ data/
   repos/*.json      per-repo rev-pair detail (lazy-loaded when a row is expanded)
   leaderboard.json  seeded leaderboard entries
 .nojekyll           disables Jekyll so paths starting with _ are served
+```
+
+## Cloning only the `data/` folder
+
+If you just want the benchmark data and not the website, use a sparse
+checkout so git downloads only `data/`:
+
+```bash
+git clone --depth 1 --filter=blob:none --sparse \
+    https://github.com/AmberWJL/Live-TestEvo-Bench.git
+cd Live-TestEvo-Bench
+git sparse-checkout set data
+```
+
+After this, the working tree contains only `data/` (plus top-level files
+like `README.md`). To add or remove folders later:
+
+```bash
+git sparse-checkout set data static   # include more
+git sparse-checkout disable            # go back to a full checkout
+```
+
+One-liner if you only want the files without a working git repo:
+
+```bash
+# macOS/Linux — download a tarball of just data/
+curl -L https://github.com/AmberWJL/Live-TestEvo-Bench/archive/refs/heads/main.tar.gz \
+  | tar -xz --strip-components=1 Live-TestEvo-Bench-main/data
 ```
 
 ## Run locally
@@ -55,6 +85,6 @@ See the "How to submit" section on the site itself.
   author    = {Author One and Author Two and Author Three},
   booktitle = {Proceedings of the 2026 Conference on ...},
   year      = {2026},
-  url       = {https://livetestevolbench.github.io}
+  url       = {https://amberwjl.github.io/Live-TestEvo-Bench/}
 }
 ```
