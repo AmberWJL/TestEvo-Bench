@@ -281,7 +281,6 @@
           <tr>
             <th>Track</th>
             <th>rev2 date</th>
-            <th>Test file</th>
             <th>Test method(s)</th>
             <th>Diff</th>
           </tr>
@@ -297,7 +296,6 @@
         <tr>
           <td><span class="track-tag ${tagCls}">${track.replace("_", " ")}</span></td>
           <td>${escapeHtml(rp.rev2_date || "—")}</td>
-          <td>${escapeHtml(rp.test_file || "—")}</td>
           <td><div class="test-methods">${methodsHtml}</div></td>
           <td><a class="diff-link" href="${escapeAttr(rp.git_diff_url)}" target="_blank" rel="noopener">view ↗</a></td>
         </tr>

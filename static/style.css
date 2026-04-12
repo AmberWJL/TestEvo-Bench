@@ -75,10 +75,16 @@ code {
 section { padding: 48px 0; }
 section + section { border-top: 1px solid var(--border); }
 
-/* No separator line between abstract and dataset overview */
-#stats { border-top: none; }
-/* Extra breathing room between dataset overview and explorer, and no divider line */
-#explorer { padding-top: 72px; border-top: none; }
+/* ---- Section separator overrides ----
+   Sections that flow as a continuous group suppress the border-top.
+   Sections that begin a new conceptual block keep the default 1px border.
+
+   Flow:  hero ─── abstract ─── stats ─── leaderboard ─── explorer ─── submit ─── cite
+                 │  no line  │  no line │   separator  │  separator │  separator │
+*/
+#stats       { border-top: none; padding-top: 32px; }
+#leaderboard { border-top: none; padding-top: 56px; }
+#explorer    { padding-top: 56px; }
 
 /* ===========================================================
    HERO
@@ -89,13 +95,12 @@ section + section { border-top: 1px solid var(--border); }
   background: linear-gradient(180deg, #faf9f5 0%, var(--bg) 100%);
   border-bottom: none;
 }
-/* Gray line above Track 1, matching the container width used by h2 separators.
-   Leaves breathing room above (between hero nav pills) and below (before Track 1). */
+/* Separator between hero and abstract, matching container width of h2 borders. */
 #abstract::before {
   content: "";
   display: block;
   border-top: 1px solid var(--border);
-  margin: 0 0 48px;
+  margin: 0 0 0;
 }
 .hero .title {
   font-family: var(--serif);
@@ -146,181 +151,6 @@ section + section { border-top: 1px solid var(--border); }
   background: var(--ink);
   color: var(--bg);
   border-color: var(--ink);
-}
-
-/* ===========================================================
-   HERO FIGURE — code animations (two tracks)
-=========================================================== */
-.hero-figure { padding-top: 40px; padding-bottom: 20px; }
-.hero-figure.embedded { padding-top: 8px; padding-bottom: 0; }
-.overview-heading {
-  font-family: var(--serif);
-  font-size: 1.1rem;
-  font-weight: 600;
-  margin: 28px 0 10px;
-  color: var(--ink);
-}
-
-.track-block {
-  width: 100%;
-  margin-bottom: 40px;
-}
-.track-heading {
-  display: flex;
-  align-items: baseline;
-  gap: 14px;
-  margin-bottom: 14px;
-  padding-left: 4px;
-  flex-wrap: wrap;
-}
-.track-heading h2 {
-  font-family: var(--serif);
-  font-weight: 600;
-  font-size: 1.25rem;
-  margin: 0;
-  border: none;
-  padding: 0;
-}
-.track-heading .desc {
-  font-family: var(--sans);
-  font-size: 0.92rem;
-  color: var(--muted);
-}
-
-.stage {
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
-  gap: 24px;
-  align-items: stretch;
-}
-
-.panel {
-  background: var(--panel);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.03);
-  /* extra top padding so there's breathing room between the
-     track badge and the first line of code */
-  padding: 56px 0 20px;
-  font-family: var(--mono);
-  font-size: 12.5px;
-  min-height: 280px;
-  position: relative;
-  overflow: hidden;
-}
-.panel-label {
-  position: absolute;
-  top: 10px;
-  right: 14px;
-  font-family: var(--sans);
-  font-size: 10px;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--muted);
-}
-.track-badge {
-  position: absolute;
-  top: 9px;
-  left: 14px;
-  font-family: var(--sans);
-  font-size: 10px;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  padding: 3px 8px;
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  color: var(--muted);
-  background: #faf9f6;
-}
-
-/* horizontal padding lives on .code so that individual .ln elements
-   can use width: fit-content when highlighted (so the diff background
-   only covers the text characters, not the full panel width) */
-.code { padding: 0 20px; }
-.ln {
-  display: block;
-  white-space: pre;
-  line-height: 1.65;
-  height: 1.65em;
-  padding: 0;
-  font-family: var(--mono);
-  font-size: 12.5px;
-}
-
-/* Any animated .ln (diff highlight) is sized to its own content width
-   so the red/green background hugs the text characters, matching how
-   `---` / `+++` lines look in a unified diff. */
-.ln.prod-old, .ln.prod-new,
-.ln.test-old, .ln.test-new,
-.ln.prod-upd-old, .ln.prod-upd-new {
-  width: fit-content;
-  max-width: 100%;
-}
-
-.kw   { color: #7b4fa1; }
-.ty   { color: #1f5a99; }
-.fn   { color: #0d6b5a; }
-.str  { color: #a5511a; }
-.num  { color: #a5511a; }
-.cmt  { color: #8a8a8a; font-style: italic; }
-.anno { color: #6b6b00; }
-
-.multi { display: block; overflow: hidden; }
-.multi .ln { padding-left: 20px; padding-right: 20px; }
-
-.arrow {
-  width: 54px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  color: var(--muted);
-}
-.arrow svg { width: 48px; height: 24px; }
-
-/* ----- TRACK 1 keyframes (test_update) ----- */
-.t1 .prod-old { animation: t1ProdOld 10s infinite; }
-.t1 .prod-new { animation: t1ProdNew 10s infinite; }
-.t1 .test-old { animation: t1TestOld 10s infinite; }
-.t1 .test-new { animation: t1TestNew 10s infinite; }
-
-@keyframes t1ProdOld {
-  0%, 10%   { background: transparent; color: inherit; text-decoration: none; }
-  20%, 100% { background: var(--del-bg); color: var(--del-fg); text-decoration: line-through; }
-}
-@keyframes t1ProdNew {
-  0%, 20%   { height: 0; max-height: 0; opacity: 0; background: transparent; overflow: hidden; }
-  35%, 100% { height: 1.65em; max-height: 1.65em; opacity: 1; background: var(--add-bg); }
-}
-@keyframes t1TestOld {
-  0%, 50%   { background: transparent; color: inherit; text-decoration: none; }
-  60%, 100% { background: var(--del-bg); color: var(--del-fg); text-decoration: line-through; }
-}
-@keyframes t1TestNew {
-  0%, 60%   { height: 0; max-height: 0; opacity: 0; background: transparent; overflow: hidden; }
-  75%, 100% { height: 1.65em; max-height: 1.65em; opacity: 1; background: var(--add-bg); }
-}
-
-/* ----- TRACK 2 keyframes (test_generation) ----- */
-.t2 .prod-upd-old { animation: t2UpdOld     10s infinite; }
-.t2 .prod-upd-new { animation: t2UpdNew     10s infinite; }
-.t2 .prod-ins     { animation: t2ProdInsert 10s infinite; }
-.t2 .test-ins     { animation: t2TestInsert 10s infinite; }
-
-@keyframes t2UpdOld {
-  0%,  10%  { background: transparent; color: inherit; text-decoration: none; }
-  20%, 100% { background: var(--del-bg); color: var(--del-fg); text-decoration: line-through; }
-}
-@keyframes t2UpdNew {
-  0%,  20%  { height: 0; max-height: 0; opacity: 0; background: transparent; overflow: hidden; }
-  40%, 100% { height: 1.65em; max-height: 1.65em; opacity: 1; background: var(--add-bg); }
-}
-@keyframes t2ProdInsert {
-  0%,  20%  { height: 0; max-height: 0; opacity: 0; background: transparent; overflow: hidden; }
-  40%, 100% { height: auto; max-height: 8em; opacity: 1; background: var(--add-bg-soft); }
-}
-@keyframes t2TestInsert {
-  0%,  55%  { height: 0; max-height: 0; opacity: 0; background: transparent; overflow: hidden; }
-  75%, 100% { height: auto; max-height: 14em; opacity: 1; background: var(--add-bg-soft); }
 }
 
 /* ===========================================================
@@ -576,14 +406,11 @@ section + section { border-top: 1px solid var(--border); }
 
 .col-expand  { width: 24px; }
 .col-repo    { width: auto; }
-.col-total   { width: 90px;  text-align: right !important; font-family: var(--mono); font-weight: 600; color: var(--ink); }
 .col-num     { width: 140px; text-align: right !important; font-family: var(--mono); white-space: nowrap; }
 .col-dates   { width: 240px; white-space: nowrap; font-family: var(--mono); font-size: 0.84rem; color: var(--muted); }
 
 .explorer-table td.col-num,
-.explorer-table th.col-num,
-.explorer-table td.col-total,
-.explorer-table th.col-total { text-align: right; }
+.explorer-table th.col-num { text-align: right; }
 
 .repo-row .repo-name { font-weight: 500; color: var(--ink); }
 .repo-row .repo-sub  { font-size: 0.78rem; color: var(--muted); }
@@ -739,13 +566,19 @@ tr.repo-row.open .caret { transform: rotate(45deg); }
 =========================================================== */
 @media (max-width: 860px) {
   .hero .title { font-size: 2.4rem; }
-  .stage { grid-template-columns: 1fr; }
-  .arrow { display: none; }
   .stat-grid { grid-template-columns: repeat(2, 1fr); }
   .controls {
     grid-template-columns: 1fr;
     grid-template-areas:
       "time"
+      "tracks"
+      "search";
+  }
+  #leaderboard .controls {
+    grid-template-areas: "time";
+  }
+  #explorer .controls {
+    grid-template-areas:
       "tracks"
       "search";
   }
