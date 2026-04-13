@@ -3,59 +3,87 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>LiveTestEvolBench — a live benchmark of co-evolving test/production pairs</title>
+  <title>Live-TestEvo-Bench — a live benchmark of co-evolving test/production pairs</title>
   <meta name="description" content="LiveTestEvolBench is a continuously updated benchmark of co-evolving test and production code pairs mined from real open-source Java projects. Evaluate models on test update and test generation tracks with contamination-aware time filtering.">
   <link rel="stylesheet" href="static/style.css">
 </head>
 <body>
 
 <!-- =============================================================
-     HERO
-============================================================= -->
-<header class="hero">
-  <div class="container">
-    <h1 class="title">LiveTestEvolBench</h1>
-    <p class="subtitle">a benchmark of <em>co-evolving</em> test / production pairs<br>drawn from real open-source Java projects</p>
-
-    <div class="authors">
-      <span class="author">Author One<sup>1</sup></span>,
-      <span class="author">Author Two<sup>1</sup></span>,
-      <span class="author">Author Three<sup>2</sup></span>
-    </div>
-    <div class="affiliations">
-      <sup>1</sup>Institution A &nbsp;&nbsp; <sup>2</sup>Institution B
-    </div>
-
-    <nav class="links">
-      <a class="pill" href="#">Paper</a>
-      <a class="pill" href="#">arXiv</a>
-      <a class="pill" href="#">Code</a>
-      <a class="pill" href="#">Dataset</a>
-      <a class="pill" href="#cite">BibTeX</a>
-    </nav>
-  </div>
-</header>
-
-<!-- =============================================================
-     TAB NAVIGATION
+     TAB NAVIGATION — top of page
 ============================================================= -->
 <nav class="tab-bar" id="tab-bar">
   <div class="container">
     <div class="tab-bar-inner">
-      <button class="tab-btn active" data-tab="overview">Overview</button>
-      <button class="tab-btn" data-tab="leaderboard">Leaderboard</button>
-      <button class="tab-btn" data-tab="explorer">Data Explorer</button>
-      <!-- indicator drawn via CSS ::after on active tab -->
+      <a class="tab-bar-title" href="#">Live-TestEvo-Bench</a>
+      <div class="tab-bar-tabs">
+        <button class="tab-btn active" data-tab="overview">Overview</button>
+        <button class="tab-btn" data-tab="leaderboard">Leaderboard</button>
+        <button class="tab-btn" data-tab="explorer">Data Explorer</button>
+      </div>
     </div>
   </div>
 </nav>
 
 <!-- =============================================================
-     TAB: OVERVIEW  (abstract + example + stats + citation)
+     TAB: OVERVIEW  (hero + abstract + example + stats + citation)
 ============================================================= -->
 <div class="tab-panel active" id="panel-overview">
 
+  <header class="hero">
+    <div class="container">
+      <h1 class="title">Live-TestEvo-Bench</h1>
+      <p class="subtitle">a benchmark of <em>co-evolving</em> test / production pairs<br>drawn from real open-source Java projects</p>
+
+      <div class="authors">
+        <span class="author">Author One<sup>1</sup></span>,
+        <span class="author">Author Two<sup>1</sup></span>,
+        <span class="author">Author Three<sup>2</sup></span>
+      </div>
+      <div class="affiliations">
+        <sup>1</sup>Institution A &nbsp;&nbsp; <sup>2</sup>Institution B
+      </div>
+
+      <nav class="links">
+        <a class="pill" href="#">Paper</a>
+        <a class="pill" href="#">arXiv</a>
+        <a class="pill" href="#">Code</a>
+        <a class="pill" href="#">Dataset</a>
+        <a class="pill" href="#cite">BibTeX</a>
+      </nav>
+    </div>
+  </header>
+
   <section id="abstract" class="container text-section">
+    <h2>Abstract</h2>
+    <p>
+      In real software, tests and the production code they exercise are written and
+      revised together; a change to a production method almost always arrives with a
+      coordinated change to its test. Existing benchmarks for test generation and test
+      update evaluate the two sides in isolation, which discards this co-evolution
+      signal and makes it hard to tell whether a model actually understands how a
+      change should propagate from implementation to test. We introduce
+      <strong>LiveTestEvolBench</strong>, a <em>live</em>, continuously ingested
+      benchmark of <em>co-evolving test/production pairs</em> mined from the public
+      commit histories of real open-source Java projects. Each task is anchored to a
+      concrete rev-pair in which a production edit is accompanied by a contemporaneous
+      edit to the associated test suite, preserving the temporal and semantic link
+      between the two artefacts. LiveTestEvolBench ships two evaluation tracks.
+      In <em>test update</em>, a model must revise an existing test so that it still
+      compiles, exercises the new behaviour of the modified production method, and
+      passes — without weakening assertions or deleting coverage. In
+      <em>test generation</em>, the model must write a brand-new test for newly added
+      or updated production code that compiles, runs, passes, and meaningfully covers
+      the changed lines. Because tasks are ingested from live commit streams rather
+      than fixed at release time, LiveTestEvolBench enables
+      <em>contamination-aware</em> evaluation: a time filter restricts tasks to any
+      chosen <code>rev2</code> date window, so results can be reported strictly
+      against commits authored after a model's pre-training cutoff. We release the
+      benchmark together with an open leaderboard that tracks compile pass rate, test
+      pass rate, line and mutation coverage, test smell, and — for test update — the
+      coverage delta on lines that were actually changed.
+    </p>
+
     <div class="hero-figure embedded">
     <div class="track-block t1">
       <div class="track-heading">
@@ -163,35 +191,6 @@
       </div>
     </div>
     </div>
-
-    <h2>Abstract</h2>
-    <p>
-      In real software, tests and the production code they exercise are written and
-      revised together; a change to a production method almost always arrives with a
-      coordinated change to its test. Existing benchmarks for test generation and test
-      update evaluate the two sides in isolation, which discards this co-evolution
-      signal and makes it hard to tell whether a model actually understands how a
-      change should propagate from implementation to test. We introduce
-      <strong>LiveTestEvolBench</strong>, a <em>live</em>, continuously ingested
-      benchmark of <em>co-evolving test/production pairs</em> mined from the public
-      commit histories of real open-source Java projects. Each task is anchored to a
-      concrete rev-pair in which a production edit is accompanied by a contemporaneous
-      edit to the associated test suite, preserving the temporal and semantic link
-      between the two artefacts. LiveTestEvolBench ships two evaluation tracks.
-      In <em>test update</em>, a model must revise an existing test so that it still
-      compiles, exercises the new behaviour of the modified production method, and
-      passes — without weakening assertions or deleting coverage. In
-      <em>test generation</em>, the model must write a brand-new test for newly added
-      or updated production code that compiles, runs, passes, and meaningfully covers
-      the changed lines. Because tasks are ingested from live commit streams rather
-      than fixed at release time, LiveTestEvolBench enables
-      <em>contamination-aware</em> evaluation: a time filter restricts tasks to any
-      chosen <code>rev2</code> date window, so results can be reported strictly
-      against commits authored after a model's pre-training cutoff. We release the
-      benchmark together with an open leaderboard that tracks compile pass rate, test
-      pass rate, line and mutation coverage, test smell, and — for test update — the
-      coverage delta on lines that were actually changed.
-    </p>
   </section>
 
   <section id="stats" class="container">
@@ -218,16 +217,41 @@
      TAB: LEADERBOARD
 ============================================================= -->
 <div class="tab-panel" id="panel-leaderboard">
+  <div class="tab-hero">
+    <div class="container">
+      <h1 class="tab-hero-title">Leaderboard</h1>
+      <p class="tab-hero-desc">Compare model performance across test update and test generation tracks. All metrics are computed over the selected time window.</p>
+    </div>
+  </div>
   <section class="container">
-    <h2>Leaderboard</h2>
-    <p class="section-lead">
-      Seeded with placeholder rows — real submissions will replace them as they land.
-      Numbers are computed over the currently-selected time window in the Data Explorer tab.
-    </p>
+
+    <div class="tw-section" id="tw-leaderboard">
+      <p class="tw-summary" id="tw-summary-lb">Loading…</p>
+      <div class="tw-slider-row">
+        <div class="tw-date-input-group">
+          <label>Start date</label>
+          <input type="date" class="tw-date-input tw-input-min" id="tw-input-min-lb">
+        </div>
+        <div class="tw-track-wrap">
+          <div class="tw-track-area">
+            <div class="tw-track-bg"></div>
+            <div class="tw-track-before" id="tw-before-lb"></div>
+            <div class="tw-track-active" id="tw-active-lb"></div>
+            <input type="range" class="tw-range tw-range-min" id="tw-range-min-lb" min="0" max="100" value="0">
+            <input type="range" class="tw-range tw-range-max" id="tw-range-max-lb" min="0" max="100" value="100">
+          </div>
+          <div class="tw-ticks" id="tw-ticks-lb"></div>
+        </div>
+        <div class="tw-date-input-group">
+          <label>End date</label>
+          <input type="date" class="tw-date-input tw-input-max" id="tw-input-max-lb">
+        </div>
+      </div>
+    </div>
 
     <div class="lb-tabs">
-      <button class="lb-tab active" data-track="test_update">test update</button>
-      <button class="lb-tab" data-track="test_generation">test generation</button>
+      <button class="lb-tab active" data-track="test_update">Test Update</button>
+      <button class="lb-tab" data-track="test_generation">Test Generation</button>
     </div>
 
     <table class="leaderboard-table" id="leaderboard-table">
@@ -260,13 +284,37 @@
      TAB: DATA EXPLORER
 ============================================================= -->
 <div class="tab-panel" id="panel-explorer">
+  <div class="tab-hero">
+    <div class="container">
+      <h1 class="tab-hero-title">Data Explorer</h1>
+      <p class="tab-hero-desc">Browse every repository in the benchmark. Drag the time slider to filter by commit date, then click a row to inspect individual rev pairs and GitHub diffs.</p>
+    </div>
+  </div>
   <section class="container">
-    <h2>Data Explorer</h2>
-    <p class="section-lead">
-      Browse every repository in the benchmark. Drag the time slider to restrict
-      the view to a <code>rev2</code> date window — task counts recompute to
-      that window. Click a row to see its rev pairs and per-pair GitHub diff links.
-    </p>
+
+    <div class="tw-section" id="tw-explorer">
+      <p class="tw-summary" id="tw-summary-ex">Loading…</p>
+      <div class="tw-slider-row">
+        <div class="tw-date-input-group">
+          <label>Start date</label>
+          <input type="date" class="tw-date-input tw-input-min" id="tw-input-min-ex">
+        </div>
+        <div class="tw-track-wrap">
+          <div class="tw-track-area">
+            <div class="tw-track-bg"></div>
+            <div class="tw-track-before" id="tw-before-ex"></div>
+            <div class="tw-track-active" id="tw-active-ex"></div>
+            <input type="range" class="tw-range tw-range-min" id="tw-range-min-ex" min="0" max="100" value="0">
+            <input type="range" class="tw-range tw-range-max" id="tw-range-max-ex" min="0" max="100" value="100">
+          </div>
+          <div class="tw-ticks" id="tw-ticks-ex"></div>
+        </div>
+        <div class="tw-date-input-group">
+          <label>End date</label>
+          <input type="date" class="tw-date-input tw-input-max" id="tw-input-max-ex">
+        </div>
+      </div>
+    </div>
 
     <div class="controls">
       <div class="control-group tracks">
@@ -285,23 +333,6 @@
       <div class="control-group search grow">
         <label>Search repo</label>
         <input type="text" id="repo-search" placeholder="e.g. shiro-redis, Esri, OpenAPITools">
-      </div>
-      <div class="control-group time-window">
-        <label>Time window (rev2 date)</label>
-        <div class="timeline-slider">
-          <div class="timeline-range-labels">
-            <span class="timeline-date-label" id="time-label-min">—</span>
-            <span class="timeline-range-separator">to</span>
-            <span class="timeline-date-label" id="time-label-max">—</span>
-          </div>
-          <div class="timeline-track-area">
-            <div class="timeline-track-bg"></div>
-            <div class="timeline-track-active" id="timeline-active"></div>
-            <input type="range" id="time-slider-min" min="0" max="100" value="0">
-            <input type="range" id="time-slider-max" min="0" max="100" value="100">
-          </div>
-          <div class="timeline-ticks" id="timeline-ticks"></div>
-        </div>
       </div>
     </div>
 
@@ -343,6 +374,8 @@
       btn.classList.add('active');
       const panel = document.getElementById('panel-' + target);
       if (panel) panel.classList.add('active');
+      // Scroll to top when switching tabs
+      window.scrollTo({ top: 0 });
     });
   });
 })();

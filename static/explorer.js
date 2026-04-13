@@ -1,8 +1,8 @@
 /* =============================================================
    TestEvo-Bench — explorer.js
    Loads data/index.json, populates the stat grid + repo table,
-   wires the dual time-range slider + track chips + search box.
-   Clicking a row lazy-loads data/repos/<name>.json and expands.
+   wires a shared month-granularity time slider (synced across
+   Leaderboard and Data Explorer tabs) + track chips + search.
 ============================================================= */
 
 (function () {
@@ -12,28 +12,46 @@
   const TRACK_SHORT = { test_update: "u", test_generation: "g" };
   const SHORT_TRACK = { u: "test_update", g: "test_generation" };
 
-  // Default start date for the left slider thumb
-  const DEFAULT_MIN_DATE = "2020-03-01";
+  // Default left edge: March 2020
+  const DEFAULT_MIN_MONTH = "2020-03";
 
   // --- state ---
   const state = {
     index: null,
-    days: [],            // sorted unique days across all rev pairs (YYYY-MM-DD)
+    months: [],         // sorted unique months "YYYY-MM"
     minIdx: 0,
     maxIdx: 0,
     tracks: new Set(TRACKS),
     search: "",
-    repoDetailCache: {}, // project_name -> detail
+    repoDetailCache: {},
   };
 
   /* ---------- utilities ---------- */
 
   function $(id) { return document.getElementById(id); }
 
+  /** Convert "YYYY-MM" to a display string like "3/2020" */
+  function monthDisplay(m) {
+    if (!m) return "—";
+    const [y, mm] = m.split("-");
+    return `${parseInt(mm, 10)}/${y}`;
+  }
+
+  /** Convert "YYYY-MM" to first day of month "YYYY-MM-01" */
+  function monthToFirstDay(m) { return m + "-01"; }
+
+  /** Convert "YYYY-MM" to last day of month */
+  function monthToLastDay(m) {
+    const [y, mm] = m.split("-").map(Number);
+    const d = new Date(y, mm, 0); // day 0 of next month = last day
+    return `${y}-${String(mm).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  }
+
+  /** Check if a day "YYYY-MM-DD" falls within the current month window */
   function inWindow(day) {
     if (!day) return false;
-    const lo = state.days[state.minIdx];
-    const hi = state.days[state.maxIdx];
+    const lo = monthToFirstDay(state.months[state.minIdx]);
+    const hi = monthToLastDay(state.months[state.maxIdx]);
     return day >= lo && day <= hi;
   }
 
@@ -65,8 +83,7 @@
     const parts = [];
     if (years)  parts.push(`${years} year${years  === 1 ? "" : "s"}`);
     if (months) parts.push(`${months} month${months === 1 ? "" : "s"}`);
-    if (days)   parts.push(`${days} day${days   === 1 ? "" : "s"}`);
-    return parts.join(", ") || "0 days";
+    return parts.join(", ") || "< 1 month";
   }
 
   /* ---------- data load ---------- */
@@ -117,116 +134,256 @@
     }
   }
 
-  /* ---------- time slider ---------- */
+  /* ---------- month axis ---------- */
 
-  function computeDayAxis(idx) {
+  function computeMonthAxis(idx) {
     const s = new Set();
     for (const r of idx.repos) {
       for (const rp of r.rev_pairs) {
-        if (rp.d) s.add(rp.d);
+        if (rp.d) s.add(rp.d.slice(0, 7)); // "YYYY-MM"
       }
     }
     return Array.from(s).sort();
   }
 
-  /** Find the index in state.days that is >= the given date string */
-  function findDayIndex(dateStr) {
-    // Binary search for the first day >= dateStr
-    let lo = 0, hi = state.days.length - 1;
+  /** Find index in state.months >= given month string */
+  function findMonthIndex(monthStr) {
+    let lo = 0, hi = state.months.length - 1;
     while (lo < hi) {
       const mid = (lo + hi) >> 1;
-      if (state.days[mid] < dateStr) lo = mid + 1;
+      if (state.months[mid] < monthStr) lo = mid + 1;
       else hi = mid;
     }
     return lo;
   }
 
-  function renderYearTicks() {
-    const container = $("timeline-ticks");
-    if (!container || state.days.length === 0) return;
+  /* ---------- shared time-window slider ---------- */
+
+  // Both the leaderboard and explorer have their own slider DOM.
+  // We keep them in sync: any change to one updates the other.
+
+  const sliderSets = {
+    lb: { range_min: "tw-range-min-lb", range_max: "tw-range-max-lb",
+          input_min: "tw-input-min-lb", input_max: "tw-input-max-lb",
+          active: "tw-active-lb", before: "tw-before-lb",
+          ticks: "tw-ticks-lb", summary: "tw-summary-lb" },
+    ex: { range_min: "tw-range-min-ex", range_max: "tw-range-max-ex",
+          input_min: "tw-input-min-ex", input_max: "tw-input-max-ex",
+          active: "tw-active-ex", before: "tw-before-ex",
+          ticks: "tw-ticks-ex", summary: "tw-summary-ex" },
+  };
+
+  /** Count tasks in the current time window */
+  function countTasksInWindow() {
+    if (!state.index) return 0;
+    let count = 0;
+    for (const r of state.index.repos) {
+      for (const rp of r.rev_pairs) {
+        if (inWindow(rp.d)) count++;
+      }
+    }
+    return count;
+  }
+
+  /** Update the visual state of one slider set */
+  function syncSliderUI(ids) {
+    const rmin = $(ids.range_min);
+    const rmax = $(ids.range_max);
+    const imin = $(ids.input_min);
+    const imax = $(ids.input_max);
+    const active = $(ids.active);
+    const before = $(ids.before);
+    const summary = $(ids.summary);
+
+    if (!rmin || !rmax) return;
+
+    const maxVal = state.months.length - 1;
+    rmin.max = maxVal;
+    rmax.max = maxVal;
+    rmin.value = state.minIdx;
+    rmax.value = state.maxIdx;
+
+    // Date inputs
+    if (imin) imin.value = monthToFirstDay(state.months[state.minIdx]);
+    if (imax) imax.value = monthToLastDay(state.months[state.maxIdx]);
+
+    const minPct = maxVal > 0 ? (state.minIdx / maxVal) * 100 : 0;
+    const maxPct = maxVal > 0 ? (state.maxIdx / maxVal) * 100 : 100;
+
+    // Track highlights
+    if (before) {
+      before.style.width = minPct + "%";
+    }
+    if (active) {
+      active.style.left = minPct + "%";
+      active.style.width = (maxPct - minPct) + "%";
+    }
+
+    // Summary text
+    if (summary) {
+      const taskCount = countTasksInWindow();
+      const startDisp = monthDisplay(state.months[state.minIdx]);
+      const endDisp = monthDisplay(state.months[state.maxIdx]);
+      summary.innerHTML = `<strong>${fmtNum(taskCount)} tasks</strong> selected in the current time window (<strong>${startDisp}</strong> to <strong>${endDisp}</strong>). Adjust the start or end date to change the window.`;
+    }
+  }
+
+  /** Sync all slider UIs to current state, re-render data */
+  function syncAll() {
+    for (const ids of Object.values(sliderSets)) {
+      syncSliderUI(ids);
+    }
+    renderTable();
+    if (window.TestEvoBench && window.TestEvoBench.renderLeaderboard) {
+      window.TestEvoBench.renderLeaderboard();
+    }
+  }
+
+  /** Render tick marks — auto-picks interval to avoid overlap */
+  function renderTicks(ids) {
+    const container = $(ids.ticks);
+    if (!container || state.months.length === 0) return;
     container.innerHTML = "";
 
-    const firstDate = new Date(state.days[0]);
-    const lastDate = new Date(state.days[state.days.length - 1]);
-    const firstYear = firstDate.getFullYear();
-    const lastYear = lastDate.getFullYear();
-
-    // Total time span in ms
+    const firstMonth = state.months[0];
+    const lastMonth = state.months[state.months.length - 1];
+    const firstDate = new Date(firstMonth + "-01");
+    const lastDate = new Date(lastMonth + "-01");
     const totalSpan = lastDate.getTime() - firstDate.getTime();
     if (totalSpan <= 0) return;
 
-    for (let year = firstYear; year <= lastYear + 1; year++) {
-      const yearDate = new Date(year, 0, 1);
-      const offset = yearDate.getTime() - firstDate.getTime();
-      const pct = Math.max(0, Math.min(100, (offset / totalSpan) * 100));
+    const startYear = firstDate.getFullYear();
+    const endYear = lastDate.getFullYear();
+    const yearSpan = endYear - startYear + 1;
 
-      // Only show if within range
-      if (pct < 0 || pct > 100) continue;
+    // Pick tick interval to keep labels readable:
+    //   <= 4 years  → every 6 months  (label: "1/2024")
+    //   <= 10 years → every year       (label: "2020")
+    //   > 10 years  → every 2 years    (label: "2020")
+    let stepMonths, labelFn;
+    if (yearSpan <= 4) {
+      stepMonths = 6;
+      labelFn = (y, m) => `${m}/${y}`;
+    } else if (yearSpan <= 10) {
+      stepMonths = 12;
+      labelFn = (y) => `${y}`;
+    } else {
+      stepMonths = 24;
+      labelFn = (y) => `${y}`;
+    }
 
-      const tick = document.createElement("div");
-      tick.className = "timeline-tick";
-      tick.style.left = pct + "%";
-      tick.innerHTML = `<div class="timeline-tick-mark"></div><div class="timeline-tick-label">${year}</div>`;
-      container.appendChild(tick);
+    // Generate ticks
+    // Start at the first Jan on or after firstDate
+    let tickYear = startYear;
+    let tickMonth = 1; // always start at January
+
+    while (true) {
+      const tickDate = new Date(tickYear, tickMonth - 1, 1);
+      if (tickDate.getTime() > lastDate.getTime() + 365 * 86400000) break;
+
+      if (tickDate >= firstDate) {
+        const offset = tickDate.getTime() - firstDate.getTime();
+        const pct = Math.max(0, Math.min(100, (offset / totalSpan) * 100));
+
+        const tick = document.createElement("div");
+        tick.className = "tw-tick";
+        tick.style.left = pct + "%";
+        const label = labelFn(tickYear, tickMonth);
+        tick.innerHTML = `<div class="tw-tick-mark"></div><div class="tw-tick-label">${label}</div>`;
+        container.appendChild(tick);
+      }
+
+      // Advance
+      tickMonth += stepMonths;
+      while (tickMonth > 12) {
+        tickMonth -= 12;
+        tickYear++;
+      }
     }
   }
 
-  function updateActiveRange() {
-    const active = $("timeline-active");
-    if (!active || state.days.length === 0) return;
+  /** Wire one slider set's event listeners */
+  function wireSliderSet(ids, otherIds) {
+    const rmin = $(ids.range_min);
+    const rmax = $(ids.range_max);
+    const imin = $(ids.input_min);
+    const imax = $(ids.input_max);
 
-    const total = state.days.length - 1;
-    if (total <= 0) {
-      active.style.left = "0%";
-      active.style.width = "100%";
-      return;
-    }
+    if (!rmin || !rmax) return;
 
-    const leftPct = (state.minIdx / total) * 100;
-    const rightPct = (state.maxIdx / total) * 100;
-    active.style.left = leftPct + "%";
-    active.style.width = (rightPct - leftPct) + "%";
-  }
-
-  function wireTimeSlider() {
-    const mn = $("time-slider-min");
-    const mx = $("time-slider-max");
-    const lblMn = $("time-label-min");
-    const lblMx = $("time-label-max");
-
-    const maxVal = state.days.length - 1;
-    mn.min = 0;
-    mx.min = 0;
-    mn.max = maxVal;
-    mx.max = maxVal;
-
-    // Default: left thumb at 2020-03, right thumb at rightmost
-    const defaultMinIdx = findDayIndex(DEFAULT_MIN_DATE);
-    mn.value = defaultMinIdx;
-    mx.value = maxVal;
-    state.minIdx = defaultMinIdx;
-    state.maxIdx = maxVal;
-
-    const update = () => {
-      let lo = parseInt(mn.value, 10);
-      let hi = parseInt(mx.value, 10);
+    const handleRange = () => {
+      let lo = parseInt(rmin.value, 10);
+      let hi = parseInt(rmax.value, 10);
       if (lo > hi) [lo, hi] = [hi, lo];
       state.minIdx = lo;
       state.maxIdx = hi;
-      lblMn.textContent = state.days[lo] || "—";
-      lblMx.textContent = state.days[hi] || "—";
-      updateActiveRange();
-      renderTable();
-      if (window.TestEvoBench && window.TestEvoBench.renderLeaderboard) {
-        window.TestEvoBench.renderLeaderboard();
-      }
+      syncAll();
     };
 
-    mn.addEventListener("input", update);
-    mx.addEventListener("input", update);
+    rmin.addEventListener("input", handleRange);
+    rmax.addEventListener("input", handleRange);
 
-    renderYearTicks();
-    update();
+    // Date input handlers
+    if (imin) {
+      imin.addEventListener("change", () => {
+        const val = imin.value; // "YYYY-MM-DD"
+        if (!val) return;
+        const monthStr = val.slice(0, 7);
+        const idx = findMonthIndex(monthStr);
+        state.minIdx = Math.min(idx, state.maxIdx);
+        syncAll();
+      });
+    }
+    if (imax) {
+      imax.addEventListener("change", () => {
+        const val = imax.value;
+        if (!val) return;
+        const monthStr = val.slice(0, 7);
+        // Find the last month <= monthStr
+        let idx = findMonthIndex(monthStr);
+        // If the found month is > monthStr, go back one
+        if (idx < state.months.length && state.months[idx] > monthStr && idx > 0) idx--;
+        state.maxIdx = Math.max(idx, state.minIdx);
+        syncAll();
+      });
+    }
+  }
+
+  function wireTimeSliders() {
+    const maxVal = state.months.length - 1;
+    const defaultMinIdx = findMonthIndex(DEFAULT_MIN_MONTH);
+
+    state.minIdx = defaultMinIdx;
+    state.maxIdx = maxVal;
+
+    // Set initial range values
+    for (const ids of Object.values(sliderSets)) {
+      const rmin = $(ids.range_min);
+      const rmax = $(ids.range_max);
+      if (rmin) { rmin.min = 0; rmin.max = maxVal; }
+      if (rmax) { rmax.min = 0; rmax.max = maxVal; }
+    }
+
+    // Wire events (each slider syncs with the other)
+    wireSliderSet(sliderSets.lb, sliderSets.ex);
+    wireSliderSet(sliderSets.ex, sliderSets.lb);
+
+    // Set date input bounds
+    const firstDay = monthToFirstDay(state.months[0]);
+    const lastDay = monthToLastDay(state.months[maxVal]);
+    for (const ids of Object.values(sliderSets)) {
+      const imin = $(ids.input_min);
+      const imax = $(ids.input_max);
+      if (imin) { imin.min = firstDay; imin.max = lastDay; }
+      if (imax) { imax.min = firstDay; imax.max = lastDay; }
+    }
+
+    // Render ticks
+    for (const ids of Object.values(sliderSets)) {
+      renderTicks(ids);
+    }
+
+    syncAll();
   }
 
   /* ---------- repo filtering ---------- */
@@ -346,12 +503,14 @@
     for (const { track, rp } of rows) {
       const tagCls = track === "test_update" ? "tu" : "tg";
       const testFile = rp.test_file || "—";
-      const methodsHtml = (rp.test_methods || []).map(m =>
-        `<div class="m">${escapeHtml(m)}</div>`
-      ).join("") || '<div class="m metric-pending">—</div>';
+      const methodsHtml = (rp.test_methods || []).map(m => {
+        // Show "ClassName#method" — strip the package prefix (everything up to last dot before #)
+        const short = m.replace(/^.*\.([^.#]+(?:#.*)?)$/, "$1");
+        return `<div class="m" title="${escapeAttr(m)}">${escapeHtml(short)}</div>`;
+      }).join("") || '<div class="m metric-pending">—</div>';
       html += `
         <tr>
-          <td><span class="track-tag ${tagCls}">${track.replace("_", " ")}</span></td>
+          <td><span class="track-tag ${tagCls}">${track.replace("test_", "")}</span></td>
           <td>${escapeHtml(rp.rev2_date || "—")}</td>
           <td class="test-file-cell" title="${escapeAttr(testFile)}">${escapeHtml(testFile)}</td>
           <td class="test-methods-cell"><div class="test-methods">${methodsHtml}</div></td>
@@ -396,13 +555,13 @@
   }
   function escapeAttr(s) { return escapeHtml(s); }
 
-  /* ---------- public state for leaderboard.js to read ---------- */
+  /* ---------- public state ---------- */
 
   window.TestEvoBench = window.TestEvoBench || {};
   window.TestEvoBench.getState = () => ({
-    minDay: state.days[state.minIdx],
-    maxDay: state.days[state.maxIdx],
-    days: state.days,
+    minDay: monthToFirstDay(state.months[state.minIdx]),
+    maxDay: monthToLastDay(state.months[state.maxIdx]),
+    months: state.months,
     tracks: new Set(state.tracks),
   });
 
@@ -412,14 +571,13 @@
     try {
       const idx = await loadIndex();
       state.index = idx;
-      state.days = computeDayAxis(idx);
-      if (state.days.length === 0) {
-        state.days = ["2000-01-01"];
+      state.months = computeMonthAxis(idx);
+      if (state.months.length === 0) {
+        state.months = ["2000-01"];
       }
       renderStats(idx);
       wireChipsAndSearch();
-      wireTimeSlider();
-      // renderTable() is triggered by wireTimeSlider -> update()
+      wireTimeSliders();
     } catch (err) {
       console.error(err);
       $("explorer-tbody").innerHTML =
