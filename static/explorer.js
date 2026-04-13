@@ -12,6 +12,9 @@
   const TRACK_SHORT = { test_update: "u", test_generation: "g" };
   const SHORT_TRACK = { u: "test_update", g: "test_generation" };
 
+  // Default start date for the left slider thumb
+  const DEFAULT_MIN_DATE = "2020-03-01";
+
   // --- state ---
   const state = {
     index: null,
@@ -27,7 +30,6 @@
 
   function $(id) { return document.getElementById(id); }
 
-  function dayToDate(d) { return d; } // already YYYY-MM-DD
   function inWindow(day) {
     if (!day) return false;
     const lo = state.days[state.minIdx];
@@ -127,33 +129,93 @@
     return Array.from(s).sort();
   }
 
+  /** Find the index in state.days that is >= the given date string */
+  function findDayIndex(dateStr) {
+    // Binary search for the first day >= dateStr
+    let lo = 0, hi = state.days.length - 1;
+    while (lo < hi) {
+      const mid = (lo + hi) >> 1;
+      if (state.days[mid] < dateStr) lo = mid + 1;
+      else hi = mid;
+    }
+    return lo;
+  }
+
+  function renderYearTicks() {
+    const container = $("timeline-ticks");
+    if (!container || state.days.length === 0) return;
+    container.innerHTML = "";
+
+    const firstDate = new Date(state.days[0]);
+    const lastDate = new Date(state.days[state.days.length - 1]);
+    const firstYear = firstDate.getFullYear();
+    const lastYear = lastDate.getFullYear();
+
+    // Total time span in ms
+    const totalSpan = lastDate.getTime() - firstDate.getTime();
+    if (totalSpan <= 0) return;
+
+    for (let year = firstYear; year <= lastYear + 1; year++) {
+      const yearDate = new Date(year, 0, 1);
+      const offset = yearDate.getTime() - firstDate.getTime();
+      const pct = Math.max(0, Math.min(100, (offset / totalSpan) * 100));
+
+      // Only show if within range
+      if (pct < 0 || pct > 100) continue;
+
+      const tick = document.createElement("div");
+      tick.className = "timeline-tick";
+      tick.style.left = pct + "%";
+      tick.innerHTML = `<div class="timeline-tick-mark"></div><div class="timeline-tick-label">${year}</div>`;
+      container.appendChild(tick);
+    }
+  }
+
+  function updateActiveRange() {
+    const active = $("timeline-active");
+    if (!active || state.days.length === 0) return;
+
+    const total = state.days.length - 1;
+    if (total <= 0) {
+      active.style.left = "0%";
+      active.style.width = "100%";
+      return;
+    }
+
+    const leftPct = (state.minIdx / total) * 100;
+    const rightPct = (state.maxIdx / total) * 100;
+    active.style.left = leftPct + "%";
+    active.style.width = (rightPct - leftPct) + "%";
+  }
+
   function wireTimeSlider() {
     const mn = $("time-slider-min");
     const mx = $("time-slider-max");
     const lblMn = $("time-label-min");
     const lblMx = $("time-label-max");
 
+    const maxVal = state.days.length - 1;
     mn.min = 0;
     mx.min = 0;
-    mn.max = state.days.length - 1;
-    mx.max = state.days.length - 1;
-    mn.value = 0;
-    mx.value = state.days.length - 1;
+    mn.max = maxVal;
+    mx.max = maxVal;
 
-    state.minIdx = 0;
-    state.maxIdx = state.days.length - 1;
+    // Default: left thumb at 2020-03, right thumb at rightmost
+    const defaultMinIdx = findDayIndex(DEFAULT_MIN_DATE);
+    mn.value = defaultMinIdx;
+    mx.value = maxVal;
+    state.minIdx = defaultMinIdx;
+    state.maxIdx = maxVal;
 
     const update = () => {
       let lo = parseInt(mn.value, 10);
       let hi = parseInt(mx.value, 10);
-      if (lo > hi) {
-        // swap to keep consistent
-        [lo, hi] = [hi, lo];
-      }
+      if (lo > hi) [lo, hi] = [hi, lo];
       state.minIdx = lo;
       state.maxIdx = hi;
-      lblMn.textContent = state.days[lo];
-      lblMx.textContent = state.days[hi];
+      lblMn.textContent = state.days[lo] || "—";
+      lblMx.textContent = state.days[hi] || "—";
+      updateActiveRange();
       renderTable();
       if (window.TestEvoBench && window.TestEvoBench.renderLeaderboard) {
         window.TestEvoBench.renderLeaderboard();
@@ -162,13 +224,14 @@
 
     mn.addEventListener("input", update);
     mx.addEventListener("input", update);
+
+    renderYearTicks();
     update();
   }
 
   /* ---------- repo filtering ---------- */
 
   function filterRepoRow(row) {
-    // Apply search filter
     if (state.search) {
       const q = state.search.toLowerCase();
       if (!row.project_name.toLowerCase().includes(q) &&
@@ -176,7 +239,6 @@
         return null;
       }
     }
-    // Count rev pairs per track inside the current window
     let tuTasks = 0, tuChanges = 0, tgTasks = 0, tgChanges = 0;
     let minD = null, maxD = null;
     for (const rp of row.rev_pairs) {
@@ -189,11 +251,7 @@
       if (!maxD || rp.d > maxD) maxD = rp.d;
     }
     if (tuTasks + tgTasks === 0) return null;
-    return {
-      row,
-      tuTasks, tuChanges, tgTasks, tgChanges,
-      dateRange: [minD, maxD],
-    };
+    return { row, tuTasks, tuChanges, tgTasks, tgChanges, dateRange: [minD, maxD] };
   }
 
   function renderTable() {
@@ -206,7 +264,6 @@
       const f = filterRepoRow(r);
       if (f) rows.push(f);
     }
-    // Sort: most tasks first.
     rows.sort((a, b) => (b.tuTasks + b.tgTasks) - (a.tuTasks + a.tgTasks));
 
     if (rows.length === 0) {
@@ -237,7 +294,6 @@
   async function toggleRepoRow(tr, repo) {
     const next = tr.nextElementSibling;
     if (next && next.classList.contains("rev-pair-row") && next.dataset.for === repo.project_name) {
-      // already open -> close
       next.remove();
       tr.classList.remove("open");
       return;
@@ -261,7 +317,6 @@
   }
 
   function renderRevPairs(detail) {
-    // Filter in-window rev pairs for each active track.
     const rows = [];
     for (const track of TRACKS) {
       if (!state.tracks.has(track)) continue;
@@ -279,17 +334,18 @@
       <table class="rev-table">
         <thead>
           <tr>
-            <th>Track</th>
-            <th>rev2 date</th>
-            <th>Test file</th>
-            <th>Test method(s)</th>
-            <th>Diff</th>
+            <th class="rev-col-track">Track</th>
+            <th class="rev-col-date">rev2 date</th>
+            <th class="rev-col-file">Test file</th>
+            <th class="rev-col-methods">Test method(s)</th>
+            <th class="rev-col-diff">Diff</th>
           </tr>
         </thead>
         <tbody>
     `;
     for (const { track, rp } of rows) {
       const tagCls = track === "test_update" ? "tu" : "tg";
+      const testFile = rp.test_file || "—";
       const methodsHtml = (rp.test_methods || []).map(m =>
         `<div class="m">${escapeHtml(m)}</div>`
       ).join("") || '<div class="m metric-pending">—</div>';
@@ -297,8 +353,8 @@
         <tr>
           <td><span class="track-tag ${tagCls}">${track.replace("_", " ")}</span></td>
           <td>${escapeHtml(rp.rev2_date || "—")}</td>
-          <td>${escapeHtml(rp.test_file || "—")}</td>
-          <td><div class="test-methods">${methodsHtml}</div></td>
+          <td class="test-file-cell" title="${escapeAttr(testFile)}">${escapeHtml(testFile)}</td>
+          <td class="test-methods-cell"><div class="test-methods">${methodsHtml}</div></td>
           <td><a class="diff-link" href="${escapeAttr(rp.git_diff_url)}" target="_blank" rel="noopener">view ↗</a></td>
         </tr>
       `;
@@ -316,7 +372,6 @@
         if (cb.checked) state.tracks.add(track);
         else state.tracks.delete(track);
         renderTable();
-        // close any open expanded rows since filter changed
         document.querySelectorAll("tr.rev-pair-row").forEach(r => r.remove());
         document.querySelectorAll("tr.repo-row.open").forEach(r => r.classList.remove("open"));
       });

@@ -37,285 +37,290 @@
 </header>
 
 <!-- =============================================================
-     ABSTRACT + animated overview example
+     TAB NAVIGATION
 ============================================================= -->
-<section id="abstract" class="container text-section">
-  <div class="hero-figure embedded">
-  <div class="track-block t1">
-    <div class="track-heading">
-      <h2>Track 1 — Test Update</h2>
-      <span class="desc">Production code changes; the paired test must be updated to compile, exercise the new behavior, and pass.</span>
-    </div>
-    <div class="stage">
-
-      <div class="panel">
-        <span class="track-badge">production</span>
-        <span class="panel-label">Envelope.java</span>
-        <div class="code">
-          <div class="ln"><span class="anno">@Override</span></div>
-          <div class="ln"><span class="kw">public</span> <span class="ty">double</span> <span class="fn">distance</span>(<span class="ty">Envelope</span> other) {</div>
-          <div class="ln">    <span class="kw">if</span> (<span class="fn">isEmpty</span>() || other.<span class="fn">isEmpty</span>())</div>
-          <div class="ln prod-old">        <span class="kw">return</span> <span class="num">0</span>;</div>
-          <div class="ln prod-new">        <span class="kw">return</span> <span class="ty">Double</span>.NaN;</div>
-          <div class="ln">    <span class="kw">double</span> dx = <span class="fn">computeDx</span>(other);</div>
-          <div class="ln">    <span class="kw">double</span> dy = <span class="fn">computeDy</span>(other);</div>
-          <div class="ln">    <span class="kw">return</span> <span class="ty">Math</span>.<span class="fn">sqrt</span>(dx*dx + dy*dy);</div>
-          <div class="ln">}</div>
-        </div>
-      </div>
-
-      <div class="arrow">
-        <svg viewBox="0 0 48 24" fill="none" stroke="currentColor" stroke-width="1.4">
-          <line x1="2" y1="12" x2="42" y2="12"/>
-          <polyline points="34,5 44,12 34,19"/>
-        </svg>
-      </div>
-
-      <div class="panel">
-        <span class="track-badge">test update</span>
-        <span class="panel-label">TestEnvelope.java</span>
-        <div class="code">
-          <div class="ln"><span class="anno">@Test</span></div>
-          <div class="ln"><span class="kw">public</span> <span class="ty">void</span> <span class="fn">distanceOnEmpty</span>() {</div>
-          <div class="ln">    <span class="ty">Envelope</span> a = <span class="kw">new</span> <span class="ty">Envelope</span>();</div>
-          <div class="ln">    <span class="ty">Envelope</span> b = <span class="kw">new</span> <span class="ty">Envelope</span>(<span class="num">0</span>,<span class="num">0</span>,<span class="num">1</span>,<span class="num">1</span>);</div>
-          <div class="ln test-old">    <span class="fn">assertEquals</span>(<span class="num">0.0</span>, a.<span class="fn">distance</span>(b), <span class="num">1e-9</span>);</div>
-          <div class="ln test-new">    <span class="fn">assertTrue</span>(<span class="ty">Double</span>.<span class="fn">isNaN</span>(a.<span class="fn">distance</span>(b)));</div>
-          <div class="ln">}</div>
-        </div>
-      </div>
+<nav class="tab-bar" id="tab-bar">
+  <div class="container">
+    <div class="tab-bar-inner">
+      <button class="tab-btn active" data-tab="overview">Overview</button>
+      <button class="tab-btn" data-tab="leaderboard">Leaderboard</button>
+      <button class="tab-btn" data-tab="explorer">Data Explorer</button>
+      <!-- indicator drawn via CSS ::after on active tab -->
     </div>
   </div>
+</nav>
 
-  <div class="track-block t2">
-    <div class="track-heading">
-      <h2>Track 2 — Test Generation</h2>
-      <span class="desc">Production code changes; a new test must be written to compile, exercise the change, and pass.</span>
-    </div>
-    <div class="stage">
+<!-- =============================================================
+     TAB: OVERVIEW  (abstract + example + stats + citation)
+============================================================= -->
+<div class="tab-panel active" id="panel-overview">
 
-      <div class="panel">
-        <span class="track-badge">production</span>
-        <span class="panel-label">RedisCacheManager.java</span>
-        <div class="code">
-          <div class="ln"><span class="kw">public class</span> <span class="ty">RedisCacheManager</span> {</div>
-          <div class="ln"> </div>
-          <div class="ln">    <span class="kw">private</span> <span class="ty">RedisManager</span> redisManager;</div>
-          <div class="ln"> </div>
-          <div class="ln">    <span class="kw">public</span> &lt;K,V&gt; <span class="ty">Cache</span>&lt;K,V&gt; <span class="fn">getCache</span>(<span class="ty">String</span> name) {</div>
-          <div class="ln prod-upd-old">        <span class="kw">return new</span> <span class="ty">RedisCache</span>&lt;&gt;(name);</div>
-          <div class="ln prod-upd-new">        <span class="kw">return new</span> <span class="ty">RedisCache</span>&lt;&gt;(redisManager, name);</div>
-          <div class="ln">    }</div>
-          <div class="multi prod-ins">
-            <div class="ln"> </div>
-            <div class="ln">    <span class="kw">public void</span> <span class="fn">setRedisManager</span>(<span class="ty">RedisManager</span> m) {</div>
-            <div class="ln">        <span class="kw">this</span>.redisManager = m;</div>
-            <div class="ln">    }</div>
+  <section id="abstract" class="container text-section">
+    <div class="hero-figure embedded">
+    <div class="track-block t1">
+      <div class="track-heading">
+        <h2>Track 1 — Test Update</h2>
+        <span class="desc">Production code changes; the paired test must be updated to compile, exercise the new behavior, and pass.</span>
+      </div>
+      <div class="stage">
+
+        <div class="panel">
+          <span class="track-badge">production</span>
+          <span class="panel-label">Envelope.java</span>
+          <div class="code">
+            <div class="ln"><span class="anno">@Override</span></div>
+            <div class="ln"><span class="kw">public</span> <span class="ty">double</span> <span class="fn">distance</span>(<span class="ty">Envelope</span> other) {</div>
+            <div class="ln">    <span class="kw">if</span> (<span class="fn">isEmpty</span>() || other.<span class="fn">isEmpty</span>())</div>
+            <div class="ln prod-old">        <span class="kw">return</span> <span class="num">0</span>;</div>
+            <div class="ln prod-new">        <span class="kw">return</span> <span class="ty">Double</span>.NaN;</div>
+            <div class="ln">    <span class="kw">double</span> dx = <span class="fn">computeDx</span>(other);</div>
+            <div class="ln">    <span class="kw">double</span> dy = <span class="fn">computeDy</span>(other);</div>
+            <div class="ln">    <span class="kw">return</span> <span class="ty">Math</span>.<span class="fn">sqrt</span>(dx*dx + dy*dy);</div>
+            <div class="ln">}</div>
           </div>
-          <div class="ln">}</div>
         </div>
-      </div>
 
-      <div class="arrow">
-        <svg viewBox="0 0 48 24" fill="none" stroke="currentColor" stroke-width="1.4">
-          <line x1="2" y1="12" x2="42" y2="12"/>
-          <polyline points="34,5 44,12 34,19"/>
-        </svg>
-      </div>
+        <div class="arrow">
+          <svg viewBox="0 0 48 24" fill="none" stroke="currentColor" stroke-width="1.4">
+            <line x1="2" y1="12" x2="42" y2="12"/>
+            <polyline points="34,5 44,12 34,19"/>
+          </svg>
+        </div>
 
-      <div class="panel">
-        <span class="track-badge">test generation</span>
-        <span class="panel-label">RedisCacheManagerTest.java</span>
-        <div class="code">
-          <div class="ln"><span class="kw">public class</span> <span class="ty">RedisCacheManagerTest</span> {</div>
-          <div class="ln"> </div>
-          <div class="ln">    <span class="kw">private</span> <span class="ty">RedisCacheManager</span> mgr;</div>
-          <div class="ln">    <span class="kw">private</span> <span class="ty">RedisManager</span> redisManager;</div>
-          <div class="multi test-ins">
-            <div class="ln"> </div>
-            <div class="ln">    <span class="anno">@Test</span></div>
-            <div class="ln">    <span class="kw">public void</span> <span class="fn">testInit</span>() {</div>
-            <div class="ln">        mgr = <span class="kw">new</span> <span class="ty">RedisCacheManager</span>();</div>
-            <div class="ln">        mgr.<span class="fn">setRedisManager</span>(redisManager);</div>
-            <div class="ln">        <span class="ty">Cache</span>&lt;<span class="ty">String</span>,<span class="ty">String</span>&gt; c = mgr.<span class="fn">getCache</span>(<span class="str">"foo"</span>);</div>
-            <div class="ln">        <span class="fn">assertNotNull</span>(c);</div>
-            <div class="ln">    }</div>
+        <div class="panel">
+          <span class="track-badge">test update</span>
+          <span class="panel-label">TestEnvelope.java</span>
+          <div class="code">
+            <div class="ln"><span class="anno">@Test</span></div>
+            <div class="ln"><span class="kw">public</span> <span class="ty">void</span> <span class="fn">distanceOnEmpty</span>() {</div>
+            <div class="ln">    <span class="ty">Envelope</span> a = <span class="kw">new</span> <span class="ty">Envelope</span>();</div>
+            <div class="ln">    <span class="ty">Envelope</span> b = <span class="kw">new</span> <span class="ty">Envelope</span>(<span class="num">0</span>,<span class="num">0</span>,<span class="num">1</span>,<span class="num">1</span>);</div>
+            <div class="ln test-old">    <span class="fn">assertEquals</span>(<span class="num">0.0</span>, a.<span class="fn">distance</span>(b), <span class="num">1e-9</span>);</div>
+            <div class="ln test-new">    <span class="fn">assertTrue</span>(<span class="ty">Double</span>.<span class="fn">isNaN</span>(a.<span class="fn">distance</span>(b)));</div>
+            <div class="ln">}</div>
           </div>
-          <div class="ln">}</div>
         </div>
       </div>
     </div>
-  </div>
-  </div>
 
-  <h2>Abstract</h2>
-  <p>
-    In real software, tests and the production code they exercise are written and
-    revised together; a change to a production method almost always arrives with a
-    coordinated change to its test. Existing benchmarks for test generation and test
-    update evaluate the two sides in isolation, which discards this co-evolution
-    signal and makes it hard to tell whether a model actually understands how a
-    change should propagate from implementation to test. We introduce
-    <strong>LiveTestEvolBench</strong>, a <em>live</em>, continuously ingested
-    benchmark of <em>co-evolving test/production pairs</em> mined from the public
-    commit histories of real open-source Java projects. Each task is anchored to a
-    concrete rev-pair in which a production edit is accompanied by a contemporaneous
-    edit to the associated test suite, preserving the temporal and semantic link
-    between the two artefacts. LiveTestEvolBench ships two evaluation tracks.
-    In <em>test update</em>, a model must revise an existing test so that it still
-    compiles, exercises the new behaviour of the modified production method, and
-    passes — without weakening assertions or deleting coverage. In
-    <em>test generation</em>, the model must write a brand-new test for newly added
-    or updated production code that compiles, runs, passes, and meaningfully covers
-    the changed lines. Because tasks are ingested from live commit streams rather
-    than fixed at release time, LiveTestEvolBench enables
-    <em>contamination-aware</em> evaluation: a time filter restricts tasks to any
-    chosen <code>rev2</code> date window, so results can be reported strictly
-    against commits authored after a model's pre-training cutoff. We release the
-    benchmark together with an open leaderboard that tracks compile pass rate, test
-    pass rate, line and mutation coverage, test smell, and — for test update — the
-    coverage delta on lines that were actually changed.
-  </p>
-</section>
+    <div class="track-block t2">
+      <div class="track-heading">
+        <h2>Track 2 — Test Generation</h2>
+        <span class="desc">Production code changes; a new test must be written to compile, exercise the change, and pass.</span>
+      </div>
+      <div class="stage">
 
-<!-- =============================================================
-     HEADLINE STATS
-============================================================= -->
-<section id="stats" class="container">
-  <h2>Dataset overview</h2>
-  <div class="stat-grid" id="stat-grid">
-    <!-- filled in by explorer.js from data/index.json -->
-    <div class="stat-loading">Loading dataset statistics…</div>
-  </div>
-</section>
+        <div class="panel">
+          <span class="track-badge">production</span>
+          <span class="panel-label">RedisCacheManager.java</span>
+          <div class="code">
+            <div class="ln"><span class="kw">public class</span> <span class="ty">RedisCacheManager</span> {</div>
+            <div class="ln"> </div>
+            <div class="ln">    <span class="kw">private</span> <span class="ty">RedisManager</span> redisManager;</div>
+            <div class="ln"> </div>
+            <div class="ln">    <span class="kw">public</span> &lt;K,V&gt; <span class="ty">Cache</span>&lt;K,V&gt; <span class="fn">getCache</span>(<span class="ty">String</span> name) {</div>
+            <div class="ln prod-upd-old">        <span class="kw">return new</span> <span class="ty">RedisCache</span>&lt;&gt;(name);</div>
+            <div class="ln prod-upd-new">        <span class="kw">return new</span> <span class="ty">RedisCache</span>&lt;&gt;(redisManager, name);</div>
+            <div class="ln">    }</div>
+            <div class="multi prod-ins">
+              <div class="ln"> </div>
+              <div class="ln">    <span class="kw">public void</span> <span class="fn">setRedisManager</span>(<span class="ty">RedisManager</span> m) {</div>
+              <div class="ln">        <span class="kw">this</span>.redisManager = m;</div>
+              <div class="ln">    }</div>
+            </div>
+            <div class="ln">}</div>
+          </div>
+        </div>
 
-<!-- =============================================================
-     EXPLORER
-============================================================= -->
-<section id="explorer" class="container">
-  <h2>Explorer</h2>
-  <p class="section-lead">
-    Browse every repository in the benchmark. Drag the time slider to restrict
-    the view to a <code>rev2</code> date window — task counts and the
-    leaderboard below both recompute to that window. Click a row to see its
-    rev pairs and per-pair GitHub diff links.
-  </p>
+        <div class="arrow">
+          <svg viewBox="0 0 48 24" fill="none" stroke="currentColor" stroke-width="1.4">
+            <line x1="2" y1="12" x2="42" y2="12"/>
+            <polyline points="34,5 44,12 34,19"/>
+          </svg>
+        </div>
 
-  <div class="controls">
-    <div class="control-group tracks">
-      <label>Tracks</label>
-      <div class="track-toggles">
-        <label class="chip">
-          <input type="checkbox" id="toggle-test_update" checked>
-          <span>test update</span>
-        </label>
-        <label class="chip">
-          <input type="checkbox" id="toggle-test_generation" checked>
-          <span>test generation</span>
-        </label>
+        <div class="panel">
+          <span class="track-badge">test generation</span>
+          <span class="panel-label">RedisCacheManagerTest.java</span>
+          <div class="code">
+            <div class="ln"><span class="kw">public class</span> <span class="ty">RedisCacheManagerTest</span> {</div>
+            <div class="ln"> </div>
+            <div class="ln">    <span class="kw">private</span> <span class="ty">RedisCacheManager</span> mgr;</div>
+            <div class="ln">    <span class="kw">private</span> <span class="ty">RedisManager</span> redisManager;</div>
+            <div class="multi test-ins">
+              <div class="ln"> </div>
+              <div class="ln">    <span class="anno">@Test</span></div>
+              <div class="ln">    <span class="kw">public void</span> <span class="fn">testInit</span>() {</div>
+              <div class="ln">        mgr = <span class="kw">new</span> <span class="ty">RedisCacheManager</span>();</div>
+              <div class="ln">        mgr.<span class="fn">setRedisManager</span>(redisManager);</div>
+              <div class="ln">        <span class="ty">Cache</span>&lt;<span class="ty">String</span>,<span class="ty">String</span>&gt; c = mgr.<span class="fn">getCache</span>(<span class="str">"foo"</span>);</div>
+              <div class="ln">        <span class="fn">assertNotNull</span>(c);</div>
+              <div class="ln">    }</div>
+            </div>
+            <div class="ln">}</div>
+          </div>
+        </div>
       </div>
     </div>
-    <div class="control-group search grow">
-      <label>Search repo</label>
-      <input type="text" id="repo-search" placeholder="e.g. shiro-redis, Esri, OpenAPITools">
     </div>
-    <div class="control-group time-window">
-      <label>Time window (rev2 date)</label>
-      <div class="time-slider-wrap">
-        <input type="range" id="time-slider-min" min="0" max="100" value="0">
-        <input type="range" id="time-slider-max" min="0" max="100" value="100">
-      </div>
-      <div class="time-range-label">
-        <span id="time-label-min">—</span>
-        <span>→</span>
-        <span id="time-label-max">—</span>
-      </div>
+
+    <h2>Abstract</h2>
+    <p>
+      In real software, tests and the production code they exercise are written and
+      revised together; a change to a production method almost always arrives with a
+      coordinated change to its test. Existing benchmarks for test generation and test
+      update evaluate the two sides in isolation, which discards this co-evolution
+      signal and makes it hard to tell whether a model actually understands how a
+      change should propagate from implementation to test. We introduce
+      <strong>LiveTestEvolBench</strong>, a <em>live</em>, continuously ingested
+      benchmark of <em>co-evolving test/production pairs</em> mined from the public
+      commit histories of real open-source Java projects. Each task is anchored to a
+      concrete rev-pair in which a production edit is accompanied by a contemporaneous
+      edit to the associated test suite, preserving the temporal and semantic link
+      between the two artefacts. LiveTestEvolBench ships two evaluation tracks.
+      In <em>test update</em>, a model must revise an existing test so that it still
+      compiles, exercises the new behaviour of the modified production method, and
+      passes — without weakening assertions or deleting coverage. In
+      <em>test generation</em>, the model must write a brand-new test for newly added
+      or updated production code that compiles, runs, passes, and meaningfully covers
+      the changed lines. Because tasks are ingested from live commit streams rather
+      than fixed at release time, LiveTestEvolBench enables
+      <em>contamination-aware</em> evaluation: a time filter restricts tasks to any
+      chosen <code>rev2</code> date window, so results can be reported strictly
+      against commits authored after a model's pre-training cutoff. We release the
+      benchmark together with an open leaderboard that tracks compile pass rate, test
+      pass rate, line and mutation coverage, test smell, and — for test update — the
+      coverage delta on lines that were actually changed.
+    </p>
+  </section>
+
+  <section id="stats" class="container">
+    <h2>Dataset overview</h2>
+    <div class="stat-grid" id="stat-grid">
+      <div class="stat-loading">Loading dataset statistics…</div>
     </div>
-  </div>
+  </section>
 
-  <table class="explorer-table" id="explorer-table">
-    <thead>
-      <tr>
-        <th class="col-expand"></th>
-        <th class="col-repo">Repository</th>
-        <th class="col-num">test update</th>
-        <th class="col-num">test generation</th>
-        <th class="col-dates">Date range</th>
-      </tr>
-    </thead>
-    <tbody id="explorer-tbody">
-      <tr><td colspan="5" class="loading">Loading tasks…</td></tr>
-    </tbody>
-  </table>
-</section>
-
-<!-- =============================================================
-     LEADERBOARD
-============================================================= -->
-<section id="leaderboard" class="container">
-  <h2>Leaderboard</h2>
-  <p class="section-lead">
-    Seeded with placeholder rows — real submissions will replace them as they
-    land. See the <a href="#submit">How&nbsp;to&nbsp;submit</a> section below.
-    Numbers are computed over the currently-selected time window above.
-  </p>
-
-  <div class="lb-tabs">
-    <button class="lb-tab active" data-track="test_update">test update</button>
-    <button class="lb-tab" data-track="test_generation">test generation</button>
-  </div>
-
-  <table class="leaderboard-table" id="leaderboard-table">
-    <thead>
-      <tr>
-        <th>#</th>
-        <th>Model</th>
-        <th>CPR</th>
-        <th>TPR</th>
-        <th class="cov-delta-col">Cov Δ</th>
-        <th>Line Cov</th>
-        <th>Mut Score</th>
-        <th>Test Smell</th>
-        <th>Submitted</th>
-      </tr>
-    </thead>
-    <tbody id="leaderboard-tbody">
-      <tr><td colspan="9" class="loading">Loading leaderboard…</td></tr>
-    </tbody>
-  </table>
-
-  <details class="metric-defs">
-    <summary>Metric definitions</summary>
-    <dl id="metric-defs-dl"></dl>
-  </details>
-</section>
-
-<!-- =============================================================
-     HOW TO SUBMIT
-============================================================= -->
-<section id="submit" class="container text-section">
-  <h2>How to submit</h2>
-  <ol>
-    <li>Fork the public <a href="#">livetestevolbench</a> site repository.</li>
-    <li>Run the provided evaluation harness on the tasks inside your chosen <code>rev2</code> date window. For a fair contamination-aware report, pick a window that ends at or before your model's pre-training cutoff.</li>
-    <li>Add a new entry to <code>data/leaderboard.json</code> under the relevant track, following the schema of the existing seeded rows (model name, organization, <code>submission_date</code>, <code>paper_url</code>, and all six metric fields).</li>
-    <li>Open a pull request. Once the entry is reviewed and merged, the leaderboard re-deploys automatically.</li>
-  </ol>
-</section>
-
-<!-- =============================================================
-     BIBTEX
-============================================================= -->
-<section id="cite" class="container text-section">
-  <h2>Citation</h2>
-  <pre class="bibtex">@inproceedings{livetestevolbench2026,
+  <section id="cite" class="container text-section">
+    <h2>Citation</h2>
+    <pre class="bibtex">@inproceedings{livetestevolbench2026,
   title     = {LiveTestEvolBench: A Live Benchmark of Co-Evolving Test and Production Code Pairs},
   author    = {Author One and Author Two and Author Three},
   booktitle = {Proceedings of the 2026 Conference on ...},
   year      = {2026},
   url       = {https://livetestevolbench.github.io}
 }</pre>
-</section>
+  </section>
+
+</div>
+
+<!-- =============================================================
+     TAB: LEADERBOARD
+============================================================= -->
+<div class="tab-panel" id="panel-leaderboard">
+  <section class="container">
+    <h2>Leaderboard</h2>
+    <p class="section-lead">
+      Seeded with placeholder rows — real submissions will replace them as they land.
+      Numbers are computed over the currently-selected time window in the Data Explorer tab.
+    </p>
+
+    <div class="lb-tabs">
+      <button class="lb-tab active" data-track="test_update">test update</button>
+      <button class="lb-tab" data-track="test_generation">test generation</button>
+    </div>
+
+    <table class="leaderboard-table" id="leaderboard-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Model</th>
+          <th>CPR</th>
+          <th>TPR</th>
+          <th class="cov-delta-col">Cov Δ</th>
+          <th>Line Cov</th>
+          <th>Mut Score</th>
+          <th>Test Smell</th>
+          <th>Submitted</th>
+        </tr>
+      </thead>
+      <tbody id="leaderboard-tbody">
+        <tr><td colspan="9" class="loading">Loading leaderboard…</td></tr>
+      </tbody>
+    </table>
+
+    <details class="metric-defs">
+      <summary>Metric definitions</summary>
+      <dl id="metric-defs-dl"></dl>
+    </details>
+  </section>
+</div>
+
+<!-- =============================================================
+     TAB: DATA EXPLORER
+============================================================= -->
+<div class="tab-panel" id="panel-explorer">
+  <section class="container">
+    <h2>Data Explorer</h2>
+    <p class="section-lead">
+      Browse every repository in the benchmark. Drag the time slider to restrict
+      the view to a <code>rev2</code> date window — task counts recompute to
+      that window. Click a row to see its rev pairs and per-pair GitHub diff links.
+    </p>
+
+    <div class="controls">
+      <div class="control-group tracks">
+        <label>Tracks</label>
+        <div class="track-toggles">
+          <label class="chip">
+            <input type="checkbox" id="toggle-test_update" checked>
+            <span>test update</span>
+          </label>
+          <label class="chip">
+            <input type="checkbox" id="toggle-test_generation" checked>
+            <span>test generation</span>
+          </label>
+        </div>
+      </div>
+      <div class="control-group search grow">
+        <label>Search repo</label>
+        <input type="text" id="repo-search" placeholder="e.g. shiro-redis, Esri, OpenAPITools">
+      </div>
+      <div class="control-group time-window">
+        <label>Time window (rev2 date)</label>
+        <div class="timeline-slider">
+          <div class="timeline-range-labels">
+            <span class="timeline-date-label" id="time-label-min">—</span>
+            <span class="timeline-range-separator">to</span>
+            <span class="timeline-date-label" id="time-label-max">—</span>
+          </div>
+          <div class="timeline-track-area">
+            <div class="timeline-track-bg"></div>
+            <div class="timeline-track-active" id="timeline-active"></div>
+            <input type="range" id="time-slider-min" min="0" max="100" value="0">
+            <input type="range" id="time-slider-max" min="0" max="100" value="100">
+          </div>
+          <div class="timeline-ticks" id="timeline-ticks"></div>
+        </div>
+      </div>
+    </div>
+
+    <table class="explorer-table" id="explorer-table">
+      <thead>
+        <tr>
+          <th class="col-expand"></th>
+          <th class="col-repo">Repository</th>
+          <th class="col-num">test update</th>
+          <th class="col-num">test generation</th>
+          <th class="col-dates">Date range</th>
+        </tr>
+      </thead>
+      <tbody id="explorer-tbody">
+        <tr><td colspan="5" class="loading">Loading tasks…</td></tr>
+      </tbody>
+    </table>
+  </section>
+</div>
 
 <footer class="site-footer container">
   <p>
@@ -324,6 +329,24 @@
   </p>
 </footer>
 
+<script>
+/* Tab switching */
+(function() {
+  const btns = document.querySelectorAll('.tab-btn');
+  const panels = document.querySelectorAll('.tab-panel');
+
+  btns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const target = btn.dataset.tab;
+      btns.forEach(b => b.classList.remove('active'));
+      panels.forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      const panel = document.getElementById('panel-' + target);
+      if (panel) panel.classList.add('active');
+    });
+  });
+})();
+</script>
 <script src="static/explorer.js"></script>
 <script src="static/leaderboard.js"></script>
 </body>

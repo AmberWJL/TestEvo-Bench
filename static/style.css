@@ -3,6 +3,8 @@
    Inspired by the Nerfies project page. No framework.
 ============================================================= */
 
+@import url('https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;0,8..60,700;1,8..60,400&family=DM+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+
 :root {
   --bg: #fdfdfc;
   --bg-alt: #f7f5ef;
@@ -19,9 +21,13 @@
   --add-bg: rgba(46, 125, 50, 0.14);
   --add-bg-soft: rgba(46, 125, 50, 0.08);
   --accent: #1f4e79;
-  --mono: "SFMono-Regular", "JetBrains Mono", "Menlo", "Consolas", monospace;
-  --serif: "Source Serif Pro", "Libre Caslon Text", Georgia, serif;
-  --sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --accent-light: #e8f0f8;
+  --mono: "JetBrains Mono", "SFMono-Regular", "Menlo", "Consolas", monospace;
+  --serif: "Source Serif 4", "Libre Caslon Text", Georgia, serif;
+  --sans: "DM Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --slider-track: #d8d5cd;
+  --slider-range: var(--accent);
+  --slider-thumb: var(--accent);
 }
 
 * { box-sizing: border-box; }
@@ -99,10 +105,10 @@ section + section { border-top: 1px solid var(--border); }
 }
 .hero .title {
   font-family: var(--serif);
-  font-weight: 600;
+  font-weight: 700;
   font-size: 3.2rem;
   margin: 0 0 12px;
-  letter-spacing: -0.015em;
+  letter-spacing: -0.02em;
 }
 .hero .subtitle {
   font-family: var(--serif);
@@ -146,6 +152,62 @@ section + section { border-top: 1px solid var(--border); }
   background: var(--ink);
   color: var(--bg);
   border-color: var(--ink);
+}
+
+/* ===========================================================
+   TAB BAR
+=========================================================== */
+.tab-bar {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(253, 253, 252, 0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+}
+.tab-bar-inner {
+  display: flex;
+  gap: 0;
+  position: relative;
+}
+.tab-btn {
+  font-family: var(--sans);
+  font-size: 0.88rem;
+  font-weight: 500;
+  padding: 14px 24px;
+  background: none;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  position: relative;
+  transition: color 200ms;
+  letter-spacing: 0.01em;
+}
+.tab-btn:hover {
+  color: var(--ink-soft);
+}
+.tab-btn.active {
+  color: var(--ink);
+  font-weight: 600;
+}
+.tab-btn.active::after {
+  content: "";
+  position: absolute;
+  bottom: -1px;
+  left: 12px;
+  right: 12px;
+  height: 2px;
+  background: var(--accent);
+  border-radius: 2px 2px 0 0;
+}
+
+/* Tab panels — hide/show */
+.tab-panel {
+  display: none;
+}
+.tab-panel.active {
+  display: block;
 }
 
 /* ===========================================================
@@ -199,8 +261,6 @@ section + section { border-top: 1px solid var(--border); }
   border: 1px solid var(--border);
   border-radius: 6px;
   box-shadow: 0 1px 2px rgba(0,0,0,0.03);
-  /* extra top padding so there's breathing room between the
-     track badge and the first line of code */
   padding: 56px 0 20px;
   font-family: var(--mono);
   font-size: 12.5px;
@@ -233,9 +293,6 @@ section + section { border-top: 1px solid var(--border); }
   background: #faf9f6;
 }
 
-/* horizontal padding lives on .code so that individual .ln elements
-   can use width: fit-content when highlighted (so the diff background
-   only covers the text characters, not the full panel width) */
 .code { padding: 0 20px; }
 .ln {
   display: block;
@@ -247,9 +304,6 @@ section + section { border-top: 1px solid var(--border); }
   font-size: 12.5px;
 }
 
-/* Any animated .ln (diff highlight) is sized to its own content width
-   so the red/green background hugs the text characters, matching how
-   `---` / `+++` lines look in a unified diff. */
 .ln.prod-old, .ln.prod-new,
 .ln.test-old, .ln.test-new,
 .ln.prod-upd-old, .ln.prod-upd-new {
@@ -331,8 +385,6 @@ section + section { border-top: 1px solid var(--border); }
   font-size: 1.02rem;
   max-width: 780px;
 }
-/* Abstract paragraph spans the full container width, per the
-   design spec. Other text sections keep the 780px reading width. */
 #abstract p { max-width: none; }
 .text-section ol { padding-left: 22px; }
 .text-section ol li { margin-bottom: 8px; }
@@ -387,15 +439,12 @@ section + section { border-top: 1px solid var(--border); }
 /* ===========================================================
    CONTROLS (time slider, chips, search)
 =========================================================== */
-/* Two-row layout: the time window slider spans the full width of
-   the controls panel on its own row, then the track chips and
-   search box sit side-by-side underneath. */
 .controls {
   display: grid;
   grid-template-columns: auto 1fr;
   grid-template-areas:
-    "tracks search"
-    "time   time";
+    "time   time"
+    "tracks search";
   gap: 16px 22px;
   align-items: end;
   margin-bottom: 20px;
@@ -417,79 +466,153 @@ section + section { border-top: 1px solid var(--border); }
   font-family: var(--sans);
 }
 
-.time-slider-wrap {
+/* ===========================================================
+   TIMELINE SLIDER — clean dual-range with year ticks
+=========================================================== */
+.timeline-slider {
   position: relative;
-  height: 30px;
+  padding: 8px 0 0;
 }
-/* single background track drawn by the container so neither range input
-   overlays the other's thumb near the endpoints */
-.time-slider-wrap::before {
-  content: "";
-  position: absolute;
-  left: 8px;
-  right: 8px;
-  top: 50%;
-  height: 3px;
-  margin-top: -1.5px;
-  background: var(--border-strong);
-  border-radius: 2px;
-  pointer-events: none;
-  z-index: 0;
+
+/* Selected range date labels */
+.timeline-range-labels {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  gap: 12px;
 }
-.time-slider-wrap input[type="range"] {
+.timeline-date-label {
+  font-family: var(--mono);
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--ink);
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  padding: 4px 10px;
+  border-radius: 4px;
+  min-width: 90px;
+  text-align: center;
+}
+.timeline-range-separator {
+  font-size: 0.78rem;
+  color: var(--muted-2);
+  letter-spacing: 0.1em;
+}
+
+/* The track area */
+.timeline-track-area {
+  position: relative;
+  height: 36px;
+  user-select: none;
+}
+
+/* Background track */
+.timeline-track-bg {
   position: absolute;
   left: 0;
   right: 0;
+  top: 14px;
+  height: 6px;
+  background: var(--slider-track);
+  border-radius: 3px;
+}
+
+/* Active range highlight */
+.timeline-track-active {
+  position: absolute;
+  top: 14px;
+  height: 6px;
+  background: var(--slider-range);
+  border-radius: 3px;
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+/* Overlay range inputs */
+.timeline-track-area input[type="range"] {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
   width: 100%;
+  height: 36px;
   pointer-events: none;
   -webkit-appearance: none;
   appearance: none;
   background: transparent;
-  height: 30px;
+  margin: 0;
   z-index: 2;
 }
-.time-slider-wrap input[type="range"]::-webkit-slider-runnable-track {
-  height: 3px;
+
+.timeline-track-area input[type="range"]::-webkit-slider-runnable-track {
+  height: 6px;
   background: transparent;
   border: none;
 }
-.time-slider-wrap input[type="range"]::-moz-range-track {
-  height: 3px;
+.timeline-track-area input[type="range"]::-moz-range-track {
+  height: 6px;
   background: transparent;
   border: none;
 }
-.time-slider-wrap input[type="range"]::-webkit-slider-thumb {
+
+.timeline-track-area input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none;
   pointer-events: all;
-  width: 16px;
-  height: 16px;
+  width: 18px;
+  height: 18px;
   border-radius: 50%;
-  background: var(--ink);
-  border: 2px solid var(--bg);
-  box-shadow: 0 1px 2px rgba(0,0,0,0.2);
-  margin-top: -7px;
+  background: var(--slider-thumb);
+  border: 3px solid var(--panel);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.18), 0 0 0 1px rgba(31,78,121,0.12);
+  margin-top: -6px;
   cursor: pointer;
   position: relative;
   z-index: 3;
+  transition: box-shadow 120ms, transform 120ms;
 }
-.time-slider-wrap input[type="range"]::-moz-range-thumb {
+.timeline-track-area input[type="range"]::-webkit-slider-thumb:hover {
+  box-shadow: 0 2px 8px rgba(31,78,121,0.25), 0 0 0 1px rgba(31,78,121,0.2);
+  transform: scale(1.1);
+}
+
+.timeline-track-area input[type="range"]::-moz-range-thumb {
   pointer-events: all;
-  width: 16px;
-  height: 16px;
+  width: 18px;
+  height: 18px;
   border-radius: 50%;
-  background: var(--ink);
-  border: 2px solid var(--bg);
+  background: var(--slider-thumb);
+  border: 3px solid var(--panel);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.18), 0 0 0 1px rgba(31,78,121,0.12);
   cursor: pointer;
   position: relative;
   z-index: 3;
 }
-.time-range-label {
+
+/* Year tick marks below the track */
+.timeline-ticks {
+  position: relative;
+  height: 22px;
+  margin-top: 4px;
+}
+.timeline-tick {
+  position: absolute;
+  transform: translateX(-50%);
   display: flex;
-  justify-content: space-between;
-  gap: 6px;
-  font-size: 0.86rem;
-  color: var(--ink-soft);
+  flex-direction: column;
+  align-items: center;
+}
+.timeline-tick-mark {
+  width: 1px;
+  height: 6px;
+  background: var(--border-strong);
+}
+.timeline-tick-label {
   font-family: var(--mono);
+  font-size: 0.65rem;
+  color: var(--muted-2);
+  margin-top: 2px;
+  white-space: nowrap;
 }
 
 .track-toggles { display: flex; gap: 8px; }
@@ -504,6 +627,7 @@ section + section { border-top: 1px solid var(--border); }
   cursor: pointer;
   background: var(--panel);
   user-select: none;
+  transition: all 120ms;
 }
 .chip input { margin: 0; }
 .chip:has(input:checked) {
@@ -521,11 +645,12 @@ section + section { border-top: 1px solid var(--border); }
   background: var(--panel);
   color: var(--ink);
   outline: none;
+  transition: border-color 120ms;
 }
 #repo-search:focus { border-color: var(--accent); }
 
 /* ===========================================================
-   EXPLORER TABLE
+   EXPLORER TABLE — fixed width layout
 =========================================================== */
 .explorer-table,
 .leaderboard-table {
@@ -536,6 +661,11 @@ section + section { border-top: 1px solid var(--border); }
   border: 1px solid var(--border);
   border-radius: 6px;
   overflow: hidden;
+}
+
+/* Fixed layout for the explorer table to prevent content from stretching columns */
+.explorer-table {
+  table-layout: fixed;
 }
 
 .explorer-table thead th,
@@ -562,19 +692,29 @@ section + section { border-top: 1px solid var(--border); }
 .explorer-table tbody tr.repo-row { cursor: pointer; transition: background 120ms; }
 .explorer-table tbody tr.repo-row:hover { background: var(--bg-alt); }
 
-.col-expand  { width: 24px; }
-.col-repo    { width: auto; }
-.col-total   { width: 90px;  text-align: right !important; font-family: var(--mono); font-weight: 600; color: var(--ink); }
-.col-num     { width: 140px; text-align: right !important; font-family: var(--mono); white-space: nowrap; }
-.col-dates   { width: 240px; white-space: nowrap; font-family: var(--mono); font-size: 0.84rem; color: var(--muted); }
+/* Fixed column widths for explorer table */
+.col-expand  { width: 32px; }
+.col-repo    { width: auto; }  /* takes remaining space */
+.col-num     { width: 120px; text-align: right !important; font-family: var(--mono); white-space: nowrap; }
+.col-dates   { width: 220px; white-space: nowrap; font-family: var(--mono); font-size: 0.84rem; color: var(--muted); overflow: hidden; text-overflow: ellipsis; }
 
 .explorer-table td.col-num,
-.explorer-table th.col-num,
-.explorer-table td.col-total,
-.explorer-table th.col-total { text-align: right; }
+.explorer-table th.col-num { text-align: right; }
 
-.repo-row .repo-name { font-weight: 500; color: var(--ink); }
-.repo-row .repo-sub  { font-size: 0.78rem; color: var(--muted); }
+.repo-row .repo-name {
+  font-weight: 500;
+  color: var(--ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.repo-row .repo-sub {
+  font-size: 0.78rem;
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 .caret {
   display: inline-block;
   width: 10px;
@@ -587,6 +727,7 @@ section + section { border-top: 1px solid var(--border); }
 }
 tr.repo-row.open .caret { transform: rotate(45deg); }
 
+/* Expanded rev-pair rows */
 .rev-pair-row td {
   background: var(--bg-alt);
   padding: 10px 14px 14px;
@@ -595,6 +736,7 @@ tr.repo-row.open .caret { transform: rotate(45deg); }
 .rev-pair-row .rev-table {
   width: 100%;
   border-collapse: collapse;
+  table-layout: fixed;
 }
 .rev-pair-row .rev-table th {
   text-align: left;
@@ -606,14 +748,44 @@ tr.repo-row.open .caret { transform: rotate(45deg); }
   padding: 6px 10px;
   border-bottom: 1px solid var(--border);
 }
+/* Fixed widths for inner rev-pair table columns */
+.rev-pair-row .rev-table .rev-col-track   { width: 110px; }
+.rev-pair-row .rev-table .rev-col-date    { width: 100px; }
+.rev-pair-row .rev-table .rev-col-file    { width: auto; }  /* takes remaining */
+.rev-pair-row .rev-table .rev-col-methods { width: auto; }
+.rev-pair-row .rev-table .rev-col-diff    { width: 60px; }
+
 .rev-pair-row .rev-table td {
   padding: 8px 10px;
   border-bottom: 1px solid var(--border);
   vertical-align: top;
   font-family: var(--mono);
   font-size: 0.84rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .rev-pair-row .rev-table tr:last-child td { border-bottom: none; }
+
+/* Test file path — truncated with tooltip, expandable on mobile */
+.test-file-cell {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 0; /* forces ellipsis in fixed-layout table */
+  cursor: help;
+}
+.test-file-cell:hover {
+  white-space: normal;
+  word-break: break-all;
+  overflow: visible;
+}
+
+.test-methods-cell {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 0;
+}
+
 .track-tag {
   display: inline-block;
   font-family: var(--sans);
@@ -624,6 +796,7 @@ tr.repo-row.open .caret { transform: rotate(45deg); }
   border-radius: 999px;
   border: 1px solid var(--border-strong);
   color: var(--muted);
+  white-space: nowrap;
 }
 .track-tag.tu { background: #eef3fa; color: #1f4e79; border-color: #c9d9ee; }
 .track-tag.tg { background: #f2f7ee; color: #2e6b2c; border-color: #cadfc3; }
@@ -636,6 +809,9 @@ tr.repo-row.open .caret { transform: rotate(45deg); }
 .test-methods .m {
   color: var(--ink-soft);
   font-family: var(--mono);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .diff-link {
   font-family: var(--sans);
@@ -663,6 +839,7 @@ tr.repo-row.open .caret { transform: rotate(45deg); }
   color: var(--muted);
   cursor: pointer;
   border-radius: 4px 4px 0 0;
+  transition: all 120ms;
 }
 .lb-tab.active {
   color: var(--ink);
@@ -722,4 +899,22 @@ tr.repo-row.open .caret { transform: rotate(45deg); }
       "search";
   }
   .col-dates { display: none; }
+  .explorer-table .col-num { width: 80px; }
+
+  .tab-btn {
+    padding: 12px 14px;
+    font-size: 0.82rem;
+  }
+
+  /* On mobile, let the rev-pair table scroll horizontally */
+  .rev-pair-row td {
+    overflow-x: auto;
+  }
+}
+
+@media (max-width: 480px) {
+  .stat-grid { grid-template-columns: 1fr; }
+  .explorer-table .col-expand { width: 24px; }
+  .explorer-table .col-num { width: 65px; }
+  .timeline-tick-label { font-size: 0.58rem; }
 }
