@@ -49,19 +49,8 @@
     return res.json();
   }
 
-  function renderWindowNote() {
-    const note = $("lb-window-note");
-    if (!note) return;
-    const api = window.TestEvoBench && window.TestEvoBench.getState;
-    if (!api) { note.textContent = ""; return; }
-    const { minDay, maxDay } = api();
-    if (!minDay || !maxDay) { note.textContent = ""; return; }
-    note.innerHTML = `window: <code>${minDay}</code> → <code>${maxDay}</code>`;
-  }
-
   function renderTable() {
     if (!state.data) return;
-    renderWindowNote();
     const tbody = $("leaderboard-tbody");
     const track = state.currentTrack;
     const entries = state.data.tracks[track] || [];
