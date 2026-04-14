@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Live-TestEvo-Bench — a live benchmark of co-evolving test/production pairs</title>
-  <meta name="description" content="LiveTestEvolBench is a continuously updated benchmark of co-evolving test and production code pairs mined from real open-source Java projects. Evaluate models on test update and test generation tracks with contamination-aware time filtering.">
+  <title>TestEvo-Bench — a live benchmark of co-evolving test/production pairs</title>
+  <meta name="description" content="TestEvo-Bench is a continuously updated benchmark of co-evolving test and production code pairs mined from real open-source Java projects. Evaluate models on test update and test generation tracks with contamination-aware time filtering.">
   <link rel="stylesheet" href="static/style.css">
 </head>
 <body>
@@ -15,7 +15,7 @@
 <nav class="tab-bar" id="tab-bar">
   <div class="container">
     <div class="tab-bar-inner">
-      <a class="tab-bar-title" href="#">Live-TestEvo-Bench</a>
+      <a class="tab-bar-title" href="#">TestEvo-Bench</a>
       <div class="tab-bar-tabs">
         <button class="tab-btn active" data-tab="overview">Overview</button>
         <button class="tab-btn" data-tab="leaderboard">Leaderboard</button>
@@ -32,7 +32,7 @@
 
   <header class="hero">
     <div class="container">
-      <h1 class="title">Live-TestEvo-Bench</h1>
+      <h1 class="title">TestEvo-Bench</h1>
       <p class="subtitle">a benchmark of <em>co-evolving</em> test / production pairs<br>drawn from real open-source Java projects</p>
 
       <div class="authors">
@@ -63,19 +63,19 @@
       update evaluate the two sides in isolation, which discards this co-evolution
       signal and makes it hard to tell whether a model actually understands how a
       change should propagate from implementation to test. We introduce
-      <strong>LiveTestEvolBench</strong>, a <em>live</em>, continuously ingested
+      <strong>TestEvo-Bench</strong>, a <em>live</em>, continuously ingested
       benchmark of <em>co-evolving test/production pairs</em> mined from the public
       commit histories of real open-source Java projects. Each task is anchored to a
       concrete rev-pair in which a production edit is accompanied by a contemporaneous
       edit to the associated test suite, preserving the temporal and semantic link
-      between the two artefacts. LiveTestEvolBench ships two evaluation tracks.
+      between the two artefacts. TestEvo-Bench ships two evaluation tracks.
       In <em>test update</em>, a model must revise an existing test so that it still
       compiles, exercises the new behaviour of the modified production method, and
       passes — without weakening assertions or deleting coverage. In
       <em>test generation</em>, the model must write a brand-new test for newly added
       or updated production code that compiles, runs, passes, and meaningfully covers
       the changed lines. Because tasks are ingested from live commit streams rather
-      than fixed at release time, LiveTestEvolBench enables
+      than fixed at release time, TestEvo-Bench enables
       <em>contamination-aware</em> evaluation: a time filter restricts tasks to any
       chosen <code>rev2</code> date window, so results can be reported strictly
       against commits authored after a model's pre-training cutoff. We release the
@@ -88,22 +88,22 @@
     <div class="track-block t1">
       <div class="track-heading">
         <h2>Track 1 — Test Update</h2>
-        <span class="desc">Production code changes; the paired test must be updated to compile, exercise the new behavior, and pass.</span>
+        <span class="desc">Production code changes; the paired test must be updated to compile, exercise the new behavior, and pass. <em>Example from <code>gazbert/bxbot</code> v1.4.0.</em></span>
       </div>
       <div class="stage">
 
         <div class="panel">
           <span class="track-badge">production</span>
-          <span class="panel-label">Envelope.java</span>
+          <span class="panel-label">BotStatus.java</span>
           <div class="code">
             <div class="ln"><span class="anno">@Override</span></div>
-            <div class="ln"><span class="kw">public</span> <span class="ty">double</span> <span class="fn">distance</span>(<span class="ty">Envelope</span> other) {</div>
-            <div class="ln">    <span class="kw">if</span> (<span class="fn">isEmpty</span>() || other.<span class="fn">isEmpty</span>())</div>
-            <div class="ln prod-old">        <span class="kw">return</span> <span class="num">0</span>;</div>
-            <div class="ln prod-new">        <span class="kw">return</span> <span class="ty">Double</span>.NaN;</div>
-            <div class="ln">    <span class="kw">double</span> dx = <span class="fn">computeDx</span>(other);</div>
-            <div class="ln">    <span class="kw">double</span> dy = <span class="fn">computeDy</span>(other);</div>
-            <div class="ln">    <span class="kw">return</span> <span class="ty">Math</span>.<span class="fn">sqrt</span>(dx*dx + dy*dy);</div>
+            <div class="ln"><span class="kw">public</span> <span class="ty">String</span> <span class="fn">toString</span>() {</div>
+            <div class="ln">    <span class="kw">return</span> <span class="ty">MoreObjects</span>.<span class="fn">toStringHelper</span>(<span class="kw">this</span>)</div>
+            <div class="ln">        .<span class="fn">add</span>(<span class="str">"botId"</span>, botId)</div>
+            <div class="ln">        .<span class="fn">add</span>(<span class="str">"displayName"</span>, displayName)</div>
+            <div class="ln">        .<span class="fn">add</span>(<span class="str">"status"</span>, status)</div>
+            <div class="ln prod-ins">        .<span class="fn">add</span>(<span class="str">"datetime"</span>, <span class="fn">getDatetime</span>())</div>
+            <div class="ln">        .<span class="fn">toString</span>();</div>
             <div class="ln">}</div>
           </div>
         </div>
@@ -117,14 +117,16 @@
 
         <div class="panel">
           <span class="track-badge">test update</span>
-          <span class="panel-label">TestEnvelope.java</span>
+          <span class="panel-label">TestBotStatus.java</span>
           <div class="code">
             <div class="ln"><span class="anno">@Test</span></div>
-            <div class="ln"><span class="kw">public</span> <span class="ty">void</span> <span class="fn">distanceOnEmpty</span>() {</div>
-            <div class="ln">    <span class="ty">Envelope</span> a = <span class="kw">new</span> <span class="ty">Envelope</span>();</div>
-            <div class="ln">    <span class="ty">Envelope</span> b = <span class="kw">new</span> <span class="ty">Envelope</span>(<span class="num">0</span>,<span class="num">0</span>,<span class="num">1</span>,<span class="num">1</span>);</div>
-            <div class="ln test-old">    <span class="fn">assertEquals</span>(<span class="num">0.0</span>, a.<span class="fn">distance</span>(b), <span class="num">1e-9</span>);</div>
-            <div class="ln test-new">    <span class="fn">assertTrue</span>(<span class="ty">Double</span>.<span class="fn">isNaN</span>(a.<span class="fn">distance</span>(b)));</div>
+            <div class="ln"><span class="kw">public</span> <span class="ty">void</span> <span class="fn">testToStringWorksAsExpected</span>() {</div>
+            <div class="ln test-old">    <span class="kw">final</span> <span class="ty">BotStatus</span> botStatus = <span class="kw">new</span> <span class="ty">BotStatus</span>(BOT_ID, DISPLAY_NAME, STATUS);</div>
+            <div class="ln test-old">    <span class="fn">assertEquals</span>(</div>
+            <div class="ln test-old">        <span class="str">"BotStatus{botId=avro-707_1, displayName=Avro 707, status=running}"</span>, botStatus.<span class="fn">toString</span>());</div>
+            <div class="ln test-new">    <span class="kw">final</span> <span class="ty">BotStatus</span> botStatus = <span class="kw">new</span> <span class="ty">BotStatus</span>(BOT_ID, DISPLAY_NAME, STATUS, DATE);</div>
+            <div class="ln test-new">    <span class="fn">assertTrue</span>(botStatus.<span class="fn">toString</span>().<span class="fn">startsWith</span>(</div>
+            <div class="ln test-new">        <span class="str">"BotStatus{botId=avro-707_1, displayName=Avro 707, status=running, datetime="</span>));</div>
             <div class="ln">}</div>
           </div>
         </div>
@@ -134,28 +136,17 @@
     <div class="track-block t2">
       <div class="track-heading">
         <h2>Track 2 — Test Generation</h2>
-        <span class="desc">Production code changes; a new test must be written to compile, exercise the change, and pass.</span>
+        <span class="desc">Production code changes; a new test must be written to compile, exercise the change, and pass. <em>Example from <code>casbin/jcasbin</code> v1.99.0.</em></span>
       </div>
       <div class="stage">
 
         <div class="panel">
           <span class="track-badge">production</span>
-          <span class="panel-label">RedisCacheManager.java</span>
+          <span class="panel-label">Util.java</span>
           <div class="code">
-            <div class="ln"><span class="kw">public class</span> <span class="ty">RedisCacheManager</span> {</div>
-            <div class="ln"> </div>
-            <div class="ln">    <span class="kw">private</span> <span class="ty">RedisManager</span> redisManager;</div>
-            <div class="ln"> </div>
-            <div class="ln">    <span class="kw">public</span> &lt;K,V&gt; <span class="ty">Cache</span>&lt;K,V&gt; <span class="fn">getCache</span>(<span class="ty">String</span> name) {</div>
-            <div class="ln prod-upd-old">        <span class="kw">return new</span> <span class="ty">RedisCache</span>&lt;&gt;(name);</div>
-            <div class="ln prod-upd-new">        <span class="kw">return new</span> <span class="ty">RedisCache</span>&lt;&gt;(redisManager, name);</div>
-            <div class="ln">    }</div>
-            <div class="multi prod-ins">
-              <div class="ln"> </div>
-              <div class="ln">    <span class="kw">public void</span> <span class="fn">setRedisManager</span>(<span class="ty">RedisManager</span> m) {</div>
-              <div class="ln">        <span class="kw">this</span>.redisManager = m;</div>
-              <div class="ln">    }</div>
-            </div>
+            <div class="ln"><span class="kw">public static</span> <span class="ty">boolean</span> <span class="fn">hasEval</span>(<span class="ty">String</span> exp) {</div>
+            <div class="ln prod-upd-old">    <span class="kw">return</span> evalReg.<span class="fn">matcher</span>(exp).<span class="fn">matches</span>();</div>
+            <div class="ln prod-upd-new">    <span class="kw">return</span> evalReg.<span class="fn">matcher</span>(exp).<span class="fn">find</span>();</div>
             <div class="ln">}</div>
           </div>
         </div>
@@ -169,23 +160,21 @@
 
         <div class="panel">
           <span class="track-badge">test generation</span>
-          <span class="panel-label">RedisCacheManagerTest.java</span>
+          <span class="panel-label">UtilTest.java</span>
           <div class="code">
-            <div class="ln"><span class="kw">public class</span> <span class="ty">RedisCacheManagerTest</span> {</div>
-            <div class="ln"> </div>
-            <div class="ln">    <span class="kw">private</span> <span class="ty">RedisCacheManager</span> mgr;</div>
-            <div class="ln">    <span class="kw">private</span> <span class="ty">RedisManager</span> redisManager;</div>
+            <div class="ln"><span class="anno">@Test</span></div>
+            <div class="ln"><span class="kw">public void</span> <span class="fn">testReplaceEval</span>() {</div>
+            <div class="ln">    <span class="ty">Util</span>.<span class="fn">logPrint</span>(<span class="ty">Util</span>.<span class="fn">replaceEval</span>(<span class="str">"eval(test)"</span>, <span class="str">"testEval"</span>));</div>
+            <div class="ln">}</div>
             <div class="multi test-ins">
               <div class="ln"> </div>
-              <div class="ln">    <span class="anno">@Test</span></div>
-              <div class="ln">    <span class="kw">public void</span> <span class="fn">testInit</span>() {</div>
-              <div class="ln">        mgr = <span class="kw">new</span> <span class="ty">RedisCacheManager</span>();</div>
-              <div class="ln">        mgr.<span class="fn">setRedisManager</span>(redisManager);</div>
-              <div class="ln">        <span class="ty">Cache</span>&lt;<span class="ty">String</span>,<span class="ty">String</span>&gt; c = mgr.<span class="fn">getCache</span>(<span class="str">"foo"</span>);</div>
-              <div class="ln">        <span class="fn">assertNotNull</span>(c);</div>
-              <div class="ln">    }</div>
+              <div class="ln"><span class="anno">@Test</span></div>
+              <div class="ln"><span class="kw">public void</span> <span class="fn">testHasEval</span>() {</div>
+              <div class="ln">    <span class="fn">assertTrue</span>(<span class="fn">hasEval</span>(<span class="str">"eval(test)"</span>));</div>
+              <div class="ln">    <span class="fn">assertTrue</span>(<span class="fn">hasEval</span>(<span class="str">"r_act == p_act &amp;&amp; eval(p_sub_rule) &amp;&amp; eval(p_obj_rule)"</span>));</div>
+              <div class="ln">    <span class="fn">assertFalse</span>(<span class="fn">hasEval</span>(<span class="str">"evaltest"</span>));</div>
+              <div class="ln">}</div>
             </div>
-            <div class="ln">}</div>
           </div>
         </div>
       </div>
@@ -202,12 +191,12 @@
 
   <section id="cite" class="container text-section">
     <h2>Citation</h2>
-    <pre class="bibtex">@inproceedings{livetestevolbench2026,
-  title     = {LiveTestEvolBench: A Live Benchmark of Co-Evolving Test and Production Code Pairs},
+    <pre class="bibtex">@inproceedings{testevobench2026,
+  title     = {TestEvo-Bench: A Live Benchmark of Co-Evolving Test and Production Code Pairs},
   author    = {Author One and Author Two and Author Three},
   booktitle = {Proceedings of the 2026 Conference on ...},
   year      = {2026},
-  url       = {https://livetestevolbench.github.io}
+  url       = {https://amberwjl.github.io/Live-TestEvo-Bench/}
 }</pre>
   </section>
 
@@ -341,8 +330,8 @@
         <tr>
           <th class="col-expand"></th>
           <th class="col-repo">Repository</th>
-          <th class="col-num">test update</th>
-          <th class="col-num">test generation</th>
+          <th class="col-num sortable" data-sort="tu">test update<span class="sort-arrow"></span></th>
+          <th class="col-num sortable" data-sort="tg">test generation<span class="sort-arrow"></span></th>
           <th class="col-dates">Date range</th>
         </tr>
       </thead>

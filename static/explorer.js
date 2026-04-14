@@ -24,6 +24,10 @@
     tracks: new Set(TRACKS),
     search: "",
     repoDetailCache: {},
+    // Sorting. sortKey: 'tu' | 'tg' | 'total'; revSortDir: 'asc' | 'desc'
+    sortKey: "total",
+    sortDir: "desc",
+    revSortDir: "asc",   // Date sort inside expanded rev-pair rows
   };
 
   /* ---------- utilities ---------- */
@@ -421,7 +425,14 @@
       const f = filterRepoRow(r);
       if (f) rows.push(f);
     }
-    rows.sort((a, b) => (b.tuTasks + b.tgTasks) - (a.tuTasks + a.tgTasks));
+    // Sort by chosen column + direction
+    const getVal = (f) => {
+      if (state.sortKey === "tu") return f.tuTasks;
+      if (state.sortKey === "tg") return f.tgTasks;
+      return f.tuTasks + f.tgTasks;                     // default: total
+    };
+    const dir = state.sortDir === "asc" ? 1 : -1;
+    rows.sort((a, b) => (getVal(a) - getVal(b)) * dir);
 
     if (rows.length === 0) {
       tbody.innerHTML = `<tr><td colspan="5" class="empty">No repositories match the current filters.</td></tr>`;
@@ -485,16 +496,19 @@
     if (rows.length === 0) {
       return `<div class="empty">No rev pairs in the current time window.</div>`;
     }
-    rows.sort((a, b) => (a.rp.rev2_date || "").localeCompare(b.rp.rev2_date || ""));
+    const dir = state.revSortDir === "asc" ? 1 : -1;
+    rows.sort((a, b) => (a.rp.rev2_date || "").localeCompare(b.rp.rev2_date || "") * dir);
 
+    const dateArrow = state.revSortDir === "asc" ? "↑" : "↓";
     let html = `
       <table class="rev-table">
         <thead>
           <tr>
             <th class="rev-col-track">Track</th>
-            <th class="rev-col-date">rev2 date</th>
+            <th class="rev-col-commit">Commit</th>
             <th class="rev-col-file">Test file</th>
             <th class="rev-col-methods">Test method(s)</th>
+            <th class="rev-col-date sortable sort-active" data-rev-sort="date">Date<span class="sort-arrow">${dateArrow}</span></th>
             <th class="rev-col-diff">Diff</th>
           </tr>
         </thead>
@@ -503,23 +517,83 @@
     for (const { track, rp } of rows) {
       const tagCls = track === "test_update" ? "tu" : "tg";
       const testFile = rp.test_file || "—";
+      // Show just the filename (after last slash)
+      const testFileShort = testFile.replace(/^.*\//, "");
+      // Short commit SHA — first 7 chars of rev2 (standard git short-hash)
+      const shortSha = rp.rev2 ? rp.rev2.slice(0, 7) : "—";
       const methodsHtml = (rp.test_methods || []).map(m => {
-        // Show "ClassName#method" — strip the package prefix (everything up to last dot before #)
-        const short = m.replace(/^.*\.([^.#]+(?:#.*)?)$/, "$1");
+        // Show only the method name — everything after the last "#"
+        const short = m.includes("#") ? m.slice(m.lastIndexOf("#") + 1) : m;
         return `<div class="m" title="${escapeAttr(m)}">${escapeHtml(short)}</div>`;
       }).join("") || '<div class="m metric-pending">—</div>';
       html += `
         <tr>
           <td><span class="track-tag ${tagCls}">${track.replace("test_", "")}</span></td>
-          <td>${escapeHtml(rp.rev2_date || "—")}</td>
-          <td class="test-file-cell" title="${escapeAttr(testFile)}">${escapeHtml(testFile)}</td>
+          <td class="rev-commit-cell" title="${escapeAttr(rp.rev2 || "")}">${escapeHtml(shortSha)}</td>
+          <td class="test-file-cell" title="${escapeAttr(testFile)}">${escapeHtml(testFileShort)}</td>
           <td class="test-methods-cell"><div class="test-methods">${methodsHtml}</div></td>
+          <td>${escapeHtml(rp.rev2_date || "—")}</td>
           <td><a class="diff-link" href="${escapeAttr(rp.git_diff_url)}" target="_blank" rel="noopener">view ↗</a></td>
         </tr>
       `;
     }
     html += `</tbody></table>`;
     return html;
+  }
+
+  /* ---------- sort headers ---------- */
+
+  /** Update the arrow glyph + active class on the outer table headers */
+  function syncSortHeaderUI() {
+    const headers = document.querySelectorAll("#explorer-table thead th.sortable");
+    headers.forEach(th => {
+      const key = th.dataset.sort;
+      const arrow = th.querySelector(".sort-arrow");
+      if (key === state.sortKey) {
+        th.classList.add("sort-active");
+        if (arrow) arrow.textContent = state.sortDir === "asc" ? "↑" : "↓";
+      } else {
+        th.classList.remove("sort-active");
+        if (arrow) arrow.textContent = "";
+      }
+    });
+  }
+
+  function wireSortHeaders() {
+    // Outer explorer table: test update / test generation
+    document.querySelectorAll("#explorer-table thead th.sortable").forEach(th => {
+      th.addEventListener("click", () => {
+        const key = th.dataset.sort;
+        if (state.sortKey === key) {
+          state.sortDir = state.sortDir === "asc" ? "desc" : "asc";
+        } else {
+          state.sortKey = key;
+          state.sortDir = "desc";
+        }
+        // Collapse any expanded rows — they'll be out of order after re-render
+        document.querySelectorAll("tr.rev-pair-row").forEach(r => r.remove());
+        document.querySelectorAll("tr.repo-row.open").forEach(r => r.classList.remove("open"));
+        syncSortHeaderUI();
+        renderTable();
+      });
+    });
+
+    // Inner rev-pair table: Date column (delegated — rows are dynamic)
+    document.addEventListener("click", (e) => {
+      const th = e.target.closest(".rev-table th.sortable[data-rev-sort='date']");
+      if (!th) return;
+      state.revSortDir = state.revSortDir === "asc" ? "desc" : "asc";
+      // Re-render every currently-open rev-pair row
+      document.querySelectorAll("tr.repo-row.open").forEach(async (tr) => {
+        const repoName = tr.dataset.project;
+        const next = tr.nextElementSibling;
+        if (next && next.classList.contains("rev-pair-row")) {
+          const td = next.querySelector("td");
+          const detail = await loadRepoDetail(repoName);
+          td.innerHTML = renderRevPairs(detail);
+        }
+      });
+    });
   }
 
   /* ---------- track chips + search ---------- */
@@ -577,6 +651,8 @@
       }
       renderStats(idx);
       wireChipsAndSearch();
+      wireSortHeaders();
+      syncSortHeaderUI();
       wireTimeSliders();
     } catch (err) {
       console.error(err);

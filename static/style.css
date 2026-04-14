@@ -518,9 +518,10 @@ section + section { border-top: none; }
 .code { padding: 0 20px; }
 .ln {
   display: block;
-  white-space: pre;
+  white-space: pre-wrap;
+  word-break: break-word;
   line-height: 1.65;
-  height: 1.65em;
+  min-height: 1.65em;
   padding: 0;
   font-family: var(--mono);
   font-size: 12.5px;
@@ -528,7 +529,6 @@ section + section { border-top: none; }
 .ln.prod-old, .ln.prod-new,
 .ln.test-old, .ln.test-new,
 .ln.prod-upd-old, .ln.prod-upd-new {
-  width: fit-content;
   max-width: 100%;
 }
 
@@ -553,49 +553,54 @@ section + section { border-top: none; }
 .arrow svg { width: 48px; height: 24px; }
 
 /* ----- TRACK 1 keyframes (test_update) ----- */
-.t1 .prod-old { animation: t1ProdOld 10s infinite; }
-.t1 .prod-new { animation: t1ProdNew 10s infinite; }
-.t1 .test-old { animation: t1TestOld 10s infinite; }
-.t1 .test-new { animation: t1TestNew 10s infinite; }
+.t1 .prod-old { animation: t1ProdOld 15s infinite; }
+.t1 .prod-new { animation: t1ProdNew 15s infinite; }
+.t1 .prod-ins { animation: t1ProdInsert 15s infinite; }
+.t1 .test-old { animation: t1TestOld 15s infinite; }
+.t1 .test-new { animation: t1TestNew 15s infinite; }
 
 @keyframes t1ProdOld {
-  0%, 10%   { background: transparent; color: inherit; text-decoration: none; }
-  20%, 100% { background: var(--del-bg); color: var(--del-fg); text-decoration: line-through; }
+  0%, 3%    { background: transparent; color: inherit; text-decoration: none; }
+  7%, 100%  { background: var(--del-bg); color: var(--del-fg); text-decoration: line-through; }
 }
 @keyframes t1ProdNew {
-  0%, 20%   { height: 0; max-height: 0; opacity: 0; background: transparent; overflow: hidden; }
-  35%, 100% { height: 1.65em; max-height: 1.65em; opacity: 1; background: var(--add-bg); }
+  0%, 7%    { opacity: 0; background: transparent; }
+  13%, 100% { opacity: 1; background: var(--add-bg); }
 }
 @keyframes t1TestOld {
-  0%, 50%   { background: transparent; color: inherit; text-decoration: none; }
-  60%, 100% { background: var(--del-bg); color: var(--del-fg); text-decoration: line-through; }
+  0%, 17%   { background: transparent; color: inherit; text-decoration: none; }
+  23%, 100% { background: var(--del-bg); color: var(--del-fg); text-decoration: line-through; }
 }
 @keyframes t1TestNew {
-  0%, 60%   { height: 0; max-height: 0; opacity: 0; background: transparent; overflow: hidden; }
-  75%, 100% { height: 1.65em; max-height: 1.65em; opacity: 1; background: var(--add-bg); }
+  0%, 23%   { opacity: 0; background: transparent; }
+  33%, 100% { opacity: 1; background: var(--add-bg); }
+}
+@keyframes t1ProdInsert {
+  0%,  7%   { opacity: 0; background: transparent; }
+  13%, 100% { opacity: 1; background: var(--add-bg); }
 }
 
 /* ----- TRACK 2 keyframes (test_generation) ----- */
-.t2 .prod-upd-old { animation: t2UpdOld     10s infinite; }
-.t2 .prod-upd-new { animation: t2UpdNew     10s infinite; }
-.t2 .prod-ins     { animation: t2ProdInsert 10s infinite; }
-.t2 .test-ins     { animation: t2TestInsert 10s infinite; }
+.t2 .prod-upd-old { animation: t2UpdOld     15s infinite; }
+.t2 .prod-upd-new { animation: t2UpdNew     15s infinite; }
+.t2 .prod-ins     { animation: t2ProdInsert 15s infinite; }
+.t2 .test-ins     { animation: t2TestInsert 15s infinite; }
 
 @keyframes t2UpdOld {
-  0%,  10%  { background: transparent; color: inherit; text-decoration: none; }
-  20%, 100% { background: var(--del-bg); color: var(--del-fg); text-decoration: line-through; }
+  0%,  3%   { background: transparent; color: inherit; text-decoration: none; }
+  7%, 100%  { background: var(--del-bg); color: var(--del-fg); text-decoration: line-through; }
 }
 @keyframes t2UpdNew {
-  0%,  20%  { height: 0; max-height: 0; opacity: 0; background: transparent; overflow: hidden; }
-  40%, 100% { height: 1.65em; max-height: 1.65em; opacity: 1; background: var(--add-bg); }
+  0%,  7%   { opacity: 0; background: transparent; }
+  13%, 100% { opacity: 1; background: var(--add-bg); }
 }
 @keyframes t2ProdInsert {
-  0%,  20%  { height: 0; max-height: 0; opacity: 0; background: transparent; overflow: hidden; }
-  40%, 100% { height: auto; max-height: 8em; opacity: 1; background: var(--add-bg-soft); }
+  0%,  7%   { opacity: 0; background: transparent; }
+  13%, 100% { opacity: 1; background: var(--add-bg-soft); }
 }
 @keyframes t2TestInsert {
-  0%,  55%  { height: 0; max-height: 0; opacity: 0; background: transparent; overflow: hidden; }
-  75%, 100% { height: auto; max-height: 14em; opacity: 1; background: var(--add-bg-soft); }
+  0%,  23%  { opacity: 0; background: transparent; }
+  33%, 100% { opacity: 1; background: var(--add-bg-soft); }
 }
 
 /* ===========================================================
@@ -742,6 +747,28 @@ section + section { border-top: none; }
   border-bottom: 1px solid var(--border);
   background: #F7F5EF;
 }
+.explorer-table thead th.sortable,
+.rev-table th.sortable {
+  cursor: pointer;
+  user-select: none;
+  transition: color 120ms;
+}
+.explorer-table thead th.sortable:hover,
+.rev-table th.sortable:hover {
+  color: var(--ink);
+}
+.explorer-table thead th.sortable.sort-active,
+.rev-table th.sortable.sort-active {
+  color: var(--ink);
+}
+.sort-arrow {
+  display: inline-block;
+  margin-left: 6px;
+  font-size: 0.85em;
+  opacity: 0.7;
+  min-width: 8px;
+}
+
 .explorer-table tbody td,
 .leaderboard-table tbody td {
   padding: 12px 14px;
@@ -755,8 +782,8 @@ section + section { border-top: none; }
 .explorer-table tbody tr.repo-row.open { background: #F7F5EF; }
 
 .col-expand  { width: 32px; }
-.col-repo    { width: auto; }
-.col-num     { width: 120px; text-align: right !important; font-family: var(--mono); white-space: nowrap; }
+.col-repo    { width: 32%; }
+.col-num     { width: 150px; text-align: right !important; font-family: var(--mono); white-space: nowrap; }
 .col-dates   { width: 280px; white-space: nowrap; font-family: var(--mono); font-size: 0.84rem; color: var(--muted); overflow: hidden; text-overflow: ellipsis; }
 
 .explorer-table td.col-num,
@@ -811,10 +838,17 @@ tr.repo-row.open .caret { transform: rotate(45deg); }
   background: transparent;
 }
 .rev-pair-row .rev-table .rev-col-track   { width: 130px; }
-.rev-pair-row .rev-table .rev-col-date    { width: 130px; }
+.rev-pair-row .rev-table .rev-col-date    { width: 110px; }
+.rev-pair-row .rev-table .rev-col-commit  { width: 90px; }
 .rev-pair-row .rev-table .rev-col-file    { width: auto; }
 .rev-pair-row .rev-table .rev-col-methods { width: auto; }
 .rev-pair-row .rev-table .rev-col-diff    { width: 90px; }
+
+.rev-pair-row .rev-commit-cell {
+  font-family: var(--mono);
+  color: var(--ink-soft);
+  cursor: help;
+}
 
 .rev-pair-row .rev-table td {
   padding: 8px 10px;
