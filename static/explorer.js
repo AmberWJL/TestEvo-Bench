@@ -429,18 +429,19 @@
     const getVal = (f) => {
       if (state.sortKey === "tu") return f.tuTasks;
       if (state.sortKey === "tg") return f.tgTasks;
-      return f.tuTasks + f.tgTasks;                     // default: total
+      return f.tuTasks + f.tgTasks;
     };
     const dir = state.sortDir === "asc" ? 1 : -1;
     rows.sort((a, b) => (getVal(a) - getVal(b)) * dir);
 
     if (rows.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="5" class="empty">No repositories match the current filters.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="6" class="empty">No repositories match the current filters.</td></tr>`;
       return;
     }
 
     for (const f of rows) {
       const r = f.row;
+      const total = f.tuTasks + f.tgTasks;
       const tr = document.createElement("tr");
       tr.className = "repo-row";
       tr.dataset.project = r.project_name;
@@ -450,6 +451,7 @@
           <div class="repo-name">${escapeHtml(r.display_name || r.project_name)}</div>
           <div class="repo-sub">${escapeHtml(r.project_name)}</div>
         </td>
+        <td class="col-num">${fmtNum(total)}</td>
         <td class="col-num">${f.tuTasks ? fmtNum(f.tuTasks) : '<span class="metric-pending">—</span>'}</td>
         <td class="col-num">${f.tgTasks ? fmtNum(f.tgTasks) : '<span class="metric-pending">—</span>'}</td>
         <td class="col-dates">${fmtDateRange(f.dateRange)}</td>
@@ -471,7 +473,7 @@
     expanded.className = "rev-pair-row";
     expanded.dataset.for = repo.project_name;
     const td = document.createElement("td");
-    td.colSpan = 5;
+    td.colSpan = 6;
     td.innerHTML = `<div class="loading">Loading rev pairs…</div>`;
     expanded.appendChild(td);
     tr.parentNode.insertBefore(expanded, tr.nextSibling);
@@ -506,34 +508,47 @@
           <tr>
             <th class="rev-col-track">Track</th>
             <th class="rev-col-commit">Commit</th>
-            <th class="rev-col-file">Test file</th>
+            <th class="rev-col-deps">Dependency method(s)</th>
             <th class="rev-col-methods">Test method(s)</th>
             <th class="rev-col-date sortable sort-active" data-rev-sort="date">Date<span class="sort-arrow">${dateArrow}</span></th>
-            <th class="rev-col-diff">Diff</th>
           </tr>
         </thead>
         <tbody>
     `;
     for (const { track, rp } of rows) {
       const tagCls = track === "test_update" ? "tu" : "tg";
-      const testFile = rp.test_file || "—";
-      // Show just the filename (after last slash)
-      const testFileShort = testFile.replace(/^.*\//, "");
-      // Short commit SHA — first 7 chars of rev2 (standard git short-hash)
-      const shortSha = rp.rev2 ? rp.rev2.slice(0, 7) : "—";
+      // Show rev1...rev2 (short SHAs) as a link to the git diff URL
+      const shortRev1 = rp.rev1 ? rp.rev1.slice(0, 7) : "—";
+      const shortRev2 = rp.rev2 ? rp.rev2.slice(0, 7) : "—";
+      const commitLabel = `${shortRev1}...${shortRev2}`;
+      const commitHtml = rp.git_diff_url
+        ? `<a class="diff-link" href="${escapeAttr(rp.git_diff_url)}" target="_blank" rel="noopener">${escapeHtml(commitLabel)}</a>`
+        : escapeHtml(commitLabel);
+      // Dependency methods — shown as class#method, linked to diff when URL available
+      const depUrls = rp.dependency_method_urls || {};
+      const depsHtml = (rp.dependency_methods || []).map(m => {
+        const url = depUrls[m];
+        const inner = url
+          ? `<a class="diff-link" href="${escapeAttr(url)}" target="_blank" rel="noopener">${escapeHtml(m)}</a>`
+          : escapeHtml(m);
+        return `<div class="m" title="${escapeAttr(m)}">${inner}</div>`;
+      }).join("") || '<div class="m metric-pending">—</div>';
+      // Test methods — shown as test_class#test_method, linked to diff when URL available
+      const testUrls = rp.test_method_urls || {};
       const methodsHtml = (rp.test_methods || []).map(m => {
-        // Show only the method name — everything after the last "#"
-        const short = m.includes("#") ? m.slice(m.lastIndexOf("#") + 1) : m;
-        return `<div class="m" title="${escapeAttr(m)}">${escapeHtml(short)}</div>`;
+        const url = testUrls[m];
+        const inner = url
+          ? `<a class="diff-link" href="${escapeAttr(url)}" target="_blank" rel="noopener">${escapeHtml(m)}</a>`
+          : escapeHtml(m);
+        return `<div class="m" title="${escapeAttr(m)}">${inner}</div>`;
       }).join("") || '<div class="m metric-pending">—</div>';
       html += `
         <tr>
           <td><span class="track-tag ${tagCls}">${track.replace("test_", "")}</span></td>
-          <td class="rev-commit-cell" title="${escapeAttr(rp.rev2 || "")}">${escapeHtml(shortSha)}</td>
-          <td class="test-file-cell" title="${escapeAttr(testFile)}">${escapeHtml(testFileShort)}</td>
+          <td class="rev-commit-cell">${commitHtml}</td>
+          <td class="dep-methods-cell"><div class="dep-methods">${depsHtml}</div></td>
           <td class="test-methods-cell"><div class="test-methods">${methodsHtml}</div></td>
           <td>${escapeHtml(rp.rev2_date || "—")}</td>
-          <td><a class="diff-link" href="${escapeAttr(rp.git_diff_url)}" target="_blank" rel="noopener">view ↗</a></td>
         </tr>
       `;
     }

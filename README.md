@@ -1,8 +1,8 @@
-# LiveTestEvolBench — project site
+# TestEvo-Bench — project site
 
-**Live site:** <https://amberwjl.github.io/Live-TestEvo-Bench/>
+**Live site:** <https://amberwjl.github.io/TestEvo-Bench/>
 
-Static site for **LiveTestEvolBench**, a live benchmark of co-evolving test
+Static site for **TestEvo-Bench**, a live benchmark of co-evolving test
 and production code pairs mined from real open-source Java projects.
 
 This repository holds only the public-facing project page and the JSON data
@@ -19,34 +19,6 @@ data/
   repos/*.json      per-repo rev-pair detail (lazy-loaded when a row is expanded)
   leaderboard.json  seeded leaderboard entries
 .nojekyll           disables Jekyll so paths starting with _ are served
-```
-
-## Cloning only the `data/` folder
-
-If you just want the benchmark data and not the website, use a sparse
-checkout so git downloads only `data/`:
-
-```bash
-git clone --depth 1 --filter=blob:none --sparse \
-    https://github.com/AmberWJL/Live-TestEvo-Bench.git
-cd Live-TestEvo-Bench
-git sparse-checkout set data
-```
-
-After this, the working tree contains only `data/` (plus top-level files
-like `README.md`). To add or remove folders later:
-
-```bash
-git sparse-checkout set data static   # include more
-git sparse-checkout disable            # go back to a full checkout
-```
-
-One-liner if you only want the files without a working git repo:
-
-```bash
-# macOS/Linux — download a tarball of just data/
-curl -L https://github.com/AmberWJL/Live-TestEvo-Bench/archive/refs/heads/main.tar.gz \
-  | tar -xz --strip-components=1 Live-TestEvo-Bench-main/data
 ```
 
 ## Run locally
@@ -80,11 +52,11 @@ See the "How to submit" section on the site itself.
 ## Citation
 
 ```bibtex
-@inproceedings{livetestevolbench2026,
-  title     = {LiveTestEvolBench: A Live Benchmark of Co-Evolving Test and Production Code Pairs},
+@inproceedings{testevobench2026,
+  title     = {TestEvo-Bench: A Live Benchmark of Co-Evolving Test and Production Code Pairs},
   author    = {Author One and Author Two and Author Three},
   booktitle = {Proceedings of the 2026 Conference on ...},
   year      = {2026},
-  url       = {https://amberwjl.github.io/Live-TestEvo-Bench/}
+  url       = {https://amberwjl.github.io/TestEvo-Bench/}
 }
 ```

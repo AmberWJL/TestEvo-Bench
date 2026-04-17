@@ -80,7 +80,7 @@
       chosen <code>rev2</code> date window, so results can be reported strictly
       against commits authored after a model's pre-training cutoff. We release the
       benchmark together with an open leaderboard that tracks compile pass rate, test
-      pass rate, line and mutation coverage, test smell, and — for test update — the
+      pass rate, line and mutation coverage, and — for test update — the
       coverage delta on lines that were actually changed.
     </p>
 
@@ -253,12 +253,11 @@
           <th class="cov-delta-col">Cov Δ</th>
           <th>Line Cov</th>
           <th>Mut Score</th>
-          <th>Test Smell</th>
           <th>Submitted</th>
         </tr>
       </thead>
       <tbody id="leaderboard-tbody">
-        <tr><td colspan="9" class="loading">Loading leaderboard…</td></tr>
+        <tr><td colspan="8" class="loading">Loading leaderboard…</td></tr>
       </tbody>
     </table>
 
@@ -330,6 +329,7 @@
         <tr>
           <th class="col-expand"></th>
           <th class="col-repo">Repository</th>
+          <th class="col-num sortable" data-sort="total">Total<span class="sort-arrow"></span></th>
           <th class="col-num sortable" data-sort="tu">test update<span class="sort-arrow"></span></th>
           <th class="col-num sortable" data-sort="tg">test generation<span class="sort-arrow"></span></th>
           <th class="col-dates">Date range</th>

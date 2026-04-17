@@ -13,7 +13,6 @@
     { key: "coverage_delta", label: "Cov Δ",      tracks: ["test_update"] },
     { key: "line_coverage",  label: "Line Cov",   tracks: ["test_update", "test_generation"] },
     { key: "mutation_score", label: "Mut Score",  tracks: ["test_update", "test_generation"] },
-    { key: "test_smell",     label: "Test Smell", tracks: ["test_update", "test_generation"] },
   ];
 
   const state = {
@@ -75,7 +74,7 @@
     });
 
     if (sorted.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="9" class="empty">No submissions yet.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="8" class="empty">No submissions yet.</td></tr>`;
       return;
     }
 
@@ -104,7 +103,6 @@
         ${covDeltaCell}
         <td>${fmtMetric(e.metrics.line_coverage)}</td>
         <td>${fmtMetric(e.metrics.mutation_score)}</td>
-        <td>${fmtMetric(e.metrics.test_smell)}</td>
         <td>${submissionCell}</td>
       `;
       tbody.appendChild(tr);
@@ -153,7 +151,7 @@
     } catch (err) {
       console.error(err);
       $("leaderboard-tbody").innerHTML =
-        `<tr><td colspan="9" class="empty">Failed to load leaderboard: ${escapeHtml(err.message)}</td></tr>`;
+        `<tr><td colspan="8" class="empty">Failed to load leaderboard: ${escapeHtml(err.message)}</td></tr>`;
     }
   }
 

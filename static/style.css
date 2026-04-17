@@ -837,17 +837,20 @@ tr.repo-row.open .caret { transform: rotate(45deg); }
   border-bottom: 1px solid var(--border);
   background: transparent;
 }
-.rev-pair-row .rev-table .rev-col-track   { width: 130px; }
+.rev-pair-row .rev-table .rev-col-track   { width: 100px; }
 .rev-pair-row .rev-table .rev-col-date    { width: 110px; }
-.rev-pair-row .rev-table .rev-col-commit  { width: 90px; }
-.rev-pair-row .rev-table .rev-col-file    { width: auto; }
+.rev-pair-row .rev-table .rev-col-commit  { width: 160px; }
+.rev-pair-row .rev-table .rev-col-deps    { width: auto; }
 .rev-pair-row .rev-table .rev-col-methods { width: auto; }
-.rev-pair-row .rev-table .rev-col-diff    { width: 90px; }
 
 .rev-pair-row .rev-commit-cell {
   font-family: var(--mono);
   color: var(--ink-soft);
-  cursor: help;
+}
+.rev-pair-row .rev-commit-cell .diff-link {
+  font-family: var(--mono);
+  font-size: inherit;
+  white-space: nowrap;
 }
 
 .rev-pair-row .rev-table td {
@@ -861,17 +864,10 @@ tr.repo-row.open .caret { transform: rotate(45deg); }
 }
 .rev-pair-row .rev-table tr:last-child td { border-bottom: none; }
 
-.test-file-cell {
+.dep-methods-cell {
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
   max-width: 0;
-  cursor: help;
-}
-.test-file-cell:hover {
-  white-space: normal;
-  word-break: break-all;
-  overflow: visible;
 }
 .test-methods-cell {
   overflow: hidden;
@@ -882,10 +878,10 @@ tr.repo-row.open .caret { transform: rotate(45deg); }
 .track-tag {
   display: inline-block;
   font-family: var(--sans);
-  font-size: 0.68rem;
-  letter-spacing: 0.1em;
+  font-size: 0.6rem;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
-  padding: 2px 8px;
+  padding: 1px 6px;
   border-radius: 999px;
   border: 1px solid var(--border-strong);
   color: var(--muted);
@@ -894,6 +890,24 @@ tr.repo-row.open .caret { transform: rotate(45deg); }
 .track-tag.tu { background: #eef3fa; color: #1f4e79; border-color: #c9d9ee; }
 .track-tag.tg { background: #f2f7ee; color: #2e6b2c; border-color: #cadfc3; }
 
+.dep-methods {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.dep-methods .m {
+  color: var(--ink-soft);
+  font-family: var(--mono);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: default;
+}
+.dep-methods .m:hover {
+  white-space: normal;
+  word-break: break-all;
+  overflow: visible;
+}
 .test-methods {
   display: flex;
   flex-direction: column;
@@ -905,6 +919,12 @@ tr.repo-row.open .caret { transform: rotate(45deg); }
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  cursor: default;
+}
+.test-methods .m:hover {
+  white-space: normal;
+  word-break: break-all;
+  overflow: visible;
 }
 .diff-link {
   font-family: var(--sans);
