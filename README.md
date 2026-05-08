@@ -1,6 +1,6 @@
 # TestEvo-Bench — project site
 
-**Live site:** <https://amberwjl.github.io/TestEvo-Bench/>
+**Live site:** <https://www.testevo-bench.com/>
 
 Static site for **TestEvo-Bench**, a live benchmark of co-evolving test
 and production code pairs mined from real open-source Java projects.
@@ -48,15 +48,3 @@ This site is served via GitHub Pages from the `main` branch, root directory.
 ## Submitting to the leaderboard
 
 See the "How to submit" section on the site itself.
-
-## Citation
-
-```bibtex
-@inproceedings{testevobench2026,
-  title     = {TestEvo-Bench: A Live Benchmark of Co-Evolving Test and Production Code Pairs},
-  author    = {Author One and Author Two and Author Three},
-  booktitle = {Proceedings of the 2026 Conference on ...},
-  year      = {2026},
-  url       = {https://amberwjl.github.io/TestEvo-Bench/}
-}
-```
