@@ -222,21 +222,26 @@
       <button class="lb-tab" data-track="test_generation">Test Generation</button>
     </div>
 
+    <p class="lb-window-note" id="lb-window-note" style="display:none"></p>
+
     <table class="leaderboard-table" id="leaderboard-table">
       <thead>
         <tr>
           <th>#</th>
+          <th>Agent</th>
           <th>Model</th>
-          <th>CPR</th>
-          <th>TPR</th>
-          <th class="cov-delta-col">Cov Δ</th>
-          <th>Line Cov</th>
-          <th>Mut Score</th>
+          <th class="success-col">Success%</th>
+          <th>Pass%</th>
+          <th>ExecFail%</th>
+          <th>CmplFail%</th>
+          <th>HrnsFail%</th>
+          <th>CovOnPass</th>
+          <th>MutOnPass</th>
           <th>Submitted</th>
         </tr>
       </thead>
       <tbody id="leaderboard-tbody">
-        <tr><td colspan="8" class="loading">Loading leaderboard…</td></tr>
+        <tr><td colspan="11" class="loading">Loading leaderboard…</td></tr>
       </tbody>
     </table>
 

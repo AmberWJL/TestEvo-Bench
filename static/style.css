@@ -970,6 +970,12 @@ tr.repo-row.open .caret { transform: rotate(45deg); }
 .leaderboard-table .org { color: var(--muted); font-size: 0.78rem; }
 .leaderboard-table .metric-pending { color: var(--muted-2); }
 
+.lb-window-note {
+  font-size: 0.82rem;
+  color: var(--muted);
+  margin: -10px 0 10px;
+}
+
 .metric-defs { margin-top: 16px; font-size: 0.9rem; color: var(--ink-soft); }
 .metric-defs summary { cursor: pointer; color: var(--muted); font-family: var(--sans); }
 .metric-defs dl { margin-top: 10px; }

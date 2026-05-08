@@ -1,19 +1,12 @@
 /* =============================================================
    TestEvo-Bench — leaderboard.js
-   Loads data/leaderboard.json, renders two tab-switchable tables
-   (test_update / test_generation), and re-renders whenever the
-   explorer's time slider changes.
+   Loads data/leaderboard.json (per-task rates embedded), renders
+   two tab-switchable tables, and recomputes macro averages live
+   whenever the shared time-window slider changes.
 ============================================================= */
 
 (function () {
   const DATA_LB = "data/leaderboard.json";
-  const METRIC_COLUMNS = [
-    { key: "cpr",            label: "CPR",        tracks: ["test_update", "test_generation"] },
-    { key: "tpr",            label: "TPR",        tracks: ["test_update", "test_generation"] },
-    { key: "coverage_delta", label: "Cov Δ",      tracks: ["test_update"] },
-    { key: "line_coverage",  label: "Line Cov",   tracks: ["test_update", "test_generation"] },
-    { key: "mutation_score", label: "Mut Score",  tracks: ["test_update", "test_generation"] },
-  ];
 
   const state = {
     data: null,
@@ -25,89 +18,175 @@
   function escapeHtml(s) {
     if (s == null) return "";
     return String(s)
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;")
-      .replace(/'/g, "&#39;");
+      .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
   }
 
-  function fmtMetric(v) {
-    if (v == null) return '<span class="metric-pending">—</span>';
-    if (typeof v === "number") {
-      // Coverage/pass rates likely 0..1; render as percentage.
-      if (v >= 0 && v <= 1) return (v * 100).toFixed(1) + "%";
-      return v.toFixed(2);
+  /* ------------------------------------------------------------------
+     Metric computation: filter tasks by date window, recompute averages.
+
+     Each task object (stored in entry.tasks) has:
+       d    – "YYYY-MM-DD" rev2 date
+       pass, exec, cmpl, hrns  – per-task funnel rates  [0, 1]
+       cov  – per-task CovOnPass (null when no paired data)
+       mut  – per-task MutOnPass (null when no paired data)
+       disc – per-task Success rate (generation track only)
+
+     Macro average: mean over all tasks in the window that have a value
+     for that metric. Values already as 0-1 fractions; we display as %.
+  ------------------------------------------------------------------ */
+
+  function getWindow() {
+    if (window.TestEvoBench && window.TestEvoBench.getState) {
+      return window.TestEvoBench.getState(); // { minDay, maxDay }
     }
-    return escapeHtml(v);
+    return null; // explorer not loaded yet → show all
   }
 
-  async function loadLeaderboard() {
-    const res = await fetch(DATA_LB, { cache: "no-cache" });
-    if (!res.ok) throw new Error(`Failed to load ${DATA_LB}: ${res.status}`);
-    return res.json();
+  function inWindow(day, win) {
+    if (!win || !day) return true; // no filter applied
+    return day >= win.minDay && day <= win.maxDay;
   }
+
+  function computeMetrics(tasks, win, hasDisc) {
+    const pass = [], exec = [], cmpl = [], hrns = [], cov = [], mut = [], disc = [];
+    let taskCount = 0;
+    for (const t of tasks) {
+      if (!inWindow(t.d, win)) continue;
+      taskCount++;
+      pass.push(t.pass);
+      exec.push(t.exec);
+      cmpl.push(t.cmpl);
+      hrns.push(t.hrns);
+      if (t.cov != null) cov.push(t.cov);
+      if (t.mut != null) mut.push(t.mut);
+      if (hasDisc && t.disc != null) disc.push(t.disc);
+    }
+    const mean = (xs) => xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : null;
+    const pct  = (xs) => { const v = mean(xs); return v == null ? null : Math.round(v * 10000) / 100; };
+    return {
+      taskCount,
+      pass_pct:          pct(pass),
+      exec_fail_pct:     pct(exec),
+      cmpl_fail_pct:     pct(cmpl),
+      hrns_fail_pct:     pct(hrns),
+      coverage_on_pass:  pct(cov),
+      mutation_on_pass:  pct(mut),
+      discriminating_pct: hasDisc ? pct(disc) : null,
+    };
+  }
+
+  /* ------------------------------------------------------------------
+     Formatting helpers
+  ------------------------------------------------------------------ */
+
+  function fmtPct(v) {
+    if (v == null) return '<span class="metric-pending">—</span>';
+    return v.toFixed(1) + "%";
+  }
+
+  function bold(html, isBest) {
+    return isBest ? `<strong>${html}</strong>` : html;
+  }
+
+  function maxVal(vals) {
+    const v = vals.filter(x => x != null);
+    return v.length ? Math.max(...v) : null;
+  }
+  function minVal(vals) {
+    const v = vals.filter(x => x != null);
+    return v.length ? Math.min(...v) : null;
+  }
+
+  /* ------------------------------------------------------------------
+     Render table
+  ------------------------------------------------------------------ */
 
   function renderTable() {
     if (!state.data) return;
     const tbody = $("leaderboard-tbody");
     const track = state.currentTrack;
     const entries = state.data.tracks[track] || [];
+    const hasDisc = track === "test_generation";
 
-    // Show or hide the Coverage Delta column header based on track.
-    const covDeltaHeader = document.querySelector("th.cov-delta-col");
-    if (covDeltaHeader) {
-      covDeltaHeader.style.display = track === "test_update" ? "" : "none";
-    }
+    // Success% column only visible on test_generation.
+    const successHeader = document.querySelector("th.success-col");
+    if (successHeader) successHeader.style.display = hasDisc ? "" : "none";
 
-    // Sort: TPR desc (nulls last), then CPR desc (nulls last), then model name.
-    const sorted = entries.slice().sort((a, b) => {
-      const at = a.metrics.tpr, bt = b.metrics.tpr;
-      if (at != null && bt == null) return -1;
-      if (bt != null && at == null) return 1;
-      if (at != null && bt != null && at !== bt) return bt - at;
-      const ac = a.metrics.cpr, bc = b.metrics.cpr;
-      if (ac != null && bc == null) return -1;
-      if (bc != null && ac == null) return 1;
-      if (ac != null && bc != null && ac !== bc) return bc - ac;
-      return (a.model || "").localeCompare(b.model || "");
+    const win = getWindow();
+
+    // Compute per-entry metrics for the current window.
+    const computed = entries.map(e => ({
+      entry: e,
+      metrics: computeMetrics(e.tasks || [], win, hasDisc),
+    }));
+
+    // Sort: Pass% desc (nulls last), then model name.
+    computed.sort((a, b) => {
+      const ap = a.metrics.pass_pct, bp = b.metrics.pass_pct;
+      if (ap != null && bp == null) return -1;
+      if (bp != null && ap == null) return 1;
+      if (ap != null && bp != null && ap !== bp) return bp - ap;
+      return (a.entry.model || "").localeCompare(b.entry.model || "");
     });
 
-    if (sorted.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="8" class="empty">No submissions yet.</td></tr>`;
+    if (computed.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="11" class="empty">No submissions yet.</td></tr>`;
       return;
     }
 
+    // Find best values for bolding.
+    const allM = computed.map(c => c.metrics);
+    const bestPass = maxVal(allM.map(m => m.pass_pct));
+    const bestExec = minVal(allM.map(m => m.exec_fail_pct));
+    const bestCmpl = minVal(allM.map(m => m.cmpl_fail_pct));
+    const bestHrns = minVal(allM.map(m => m.hrns_fail_pct));
+    const bestCov  = maxVal(allM.map(m => m.coverage_on_pass));
+    const bestMut  = maxVal(allM.map(m => m.mutation_on_pass));
+    const bestDisc = hasDisc ? maxVal(allM.map(m => m.discriminating_pct)) : null;
+
     tbody.innerHTML = "";
     let rank = 0;
-    for (const e of sorted) {
+    for (const { entry: e, metrics: m } of computed) {
       rank++;
-      const tr = document.createElement("tr");
-      const hasAny = Object.values(e.metrics || {}).some(v => v != null);
-      const rankCell = hasAny ? rank : "—";
-      const covDeltaCell = track === "test_update"
-        ? `<td>${fmtMetric(e.metrics.coverage_delta)}</td>`
+      const hasAny = Object.values(m).some(v => typeof v === "number");
+      const successCell = hasDisc
+        ? `<td>${bold(fmtPct(m.discriminating_pct), m.discriminating_pct === bestDisc)}</td>`
         : `<td style="display:none"></td>`;
-      const submissionCell = e.submission_date
-        ? escapeHtml(e.submission_date)
-        : '<span class="metric-pending">pending</span>';
 
+      const tr = document.createElement("tr");
       tr.innerHTML = `
-        <td>${rankCell}</td>
-        <td>
-          <div class="model-name">${escapeHtml(e.model)}</div>
-          <div class="org">${escapeHtml(e.organization || "")}</div>
-        </td>
-        <td>${fmtMetric(e.metrics.cpr)}</td>
-        <td>${fmtMetric(e.metrics.tpr)}</td>
-        ${covDeltaCell}
-        <td>${fmtMetric(e.metrics.line_coverage)}</td>
-        <td>${fmtMetric(e.metrics.mutation_score)}</td>
-        <td>${submissionCell}</td>
+        <td>${hasAny ? rank : "—"}</td>
+        <td>${escapeHtml(e.agent || "")}</td>
+        <td>${escapeHtml(e.model || "")}</td>
+        ${successCell}
+        <td>${bold(fmtPct(m.pass_pct),      m.pass_pct      === bestPass)}</td>
+        <td>${bold(fmtPct(m.exec_fail_pct), m.exec_fail_pct === bestExec)}</td>
+        <td>${bold(fmtPct(m.cmpl_fail_pct), m.cmpl_fail_pct === bestCmpl)}</td>
+        <td>${bold(fmtPct(m.hrns_fail_pct), m.hrns_fail_pct === bestHrns)}</td>
+        <td>${bold(fmtPct(m.coverage_on_pass),  m.coverage_on_pass  === bestCov)}</td>
+        <td>${bold(fmtPct(m.mutation_on_pass),  m.mutation_on_pass  === bestMut)}</td>
+        <td>${e.submission_date
+          ? escapeHtml(e.submission_date)
+          : '<span class="metric-pending">pending</span>'}</td>
       `;
       tbody.appendChild(tr);
     }
+
+    // Show task count in the window note if we have window info.
+    const note = $("lb-window-note");
+    if (note && win) {
+      const taskCount = computed.reduce((s, c) => s + c.metrics.taskCount, 0) / computed.length;
+      note.textContent = `Metrics computed over ${Math.round(taskCount)} tasks in the selected window.`;
+      note.style.display = "";
+    } else if (note) {
+      note.style.display = "none";
+    }
   }
+
+  /* ------------------------------------------------------------------
+     Metric definitions
+  ------------------------------------------------------------------ */
 
   function renderMetricDefs() {
     const dl = $("metric-defs-dl");
@@ -123,6 +202,10 @@
     }
   }
 
+  /* ------------------------------------------------------------------
+     Tab wiring
+  ------------------------------------------------------------------ */
+
   function wireTabs() {
     const tabs = document.querySelectorAll(".lb-tab");
     tabs.forEach(tab => {
@@ -135,23 +218,29 @@
     });
   }
 
-  /* Exposed so explorer.js can trigger a re-render when the time slider
-     changes. The current seeded rows don't actually depend on the time
-     window (their metrics are all null), but once real submissions with
-     per-task results land, this hook is where we'll recompute them. */
+  /* ------------------------------------------------------------------
+     Public hook — explorer.js calls this when the slider moves
+  ------------------------------------------------------------------ */
+
   window.TestEvoBench = window.TestEvoBench || {};
   window.TestEvoBench.renderLeaderboard = renderTable;
 
+  /* ------------------------------------------------------------------
+     Bootstrap
+  ------------------------------------------------------------------ */
+
   async function init() {
     try {
-      state.data = await loadLeaderboard();
+      const res = await fetch(DATA_LB, { cache: "no-cache" });
+      if (!res.ok) throw new Error(`Failed to load ${DATA_LB}: ${res.status}`);
+      state.data = await res.json();
       wireTabs();
       renderMetricDefs();
       renderTable();
     } catch (err) {
       console.error(err);
       $("leaderboard-tbody").innerHTML =
-        `<tr><td colspan="8" class="empty">Failed to load leaderboard: ${escapeHtml(err.message)}</td></tr>`;
+        `<tr><td colspan="11" class="empty">Failed to load leaderboard: ${escapeHtml(err.message)}</td></tr>`;
     }
   }
 
