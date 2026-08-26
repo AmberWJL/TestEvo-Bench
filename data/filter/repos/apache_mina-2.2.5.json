@@ -1,0 +1,1 @@
+{"repo_name":"apache_mina-2.2.5","display_name":"apache/mina","github_url":"https://github.com/apache/mina","pool":"A","stars":925,"stages":[{"id":"s2","outcome":"success","detail":{"version":"2.2.5","version_source":"release_tag"}},{"id":"s3","outcome":"built","notes":[],"test_count":63},{"id":"s4","outcome":"excluded_2019w: leash_killed_18h","notes":[],"decided_in":"all-run"}]}

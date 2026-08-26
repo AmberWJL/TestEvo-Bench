@@ -1,0 +1,1 @@
+{"repo_name":"confluentinc_kafka-rest-v8.4.0-1381","display_name":"confluentinc/kafka-rest","github_url":"https://github.com/confluentinc/kafka-rest","pool":"C","stars":162,"stages":[{"id":"s2","outcome":"bad_license","detail":{"license":"Other","version":"v8.4.0-1381","version_source":"release_tag"}}]}

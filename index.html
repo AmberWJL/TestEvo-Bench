@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>TestEvo-Bench — a live benchmark of co-evolving test/production pairs</title>
   <meta name="description" content="TestEvo-Bench is a continuously updated benchmark of co-evolving test and production code pairs mined from real open-source Java projects. Evaluate models on test update and test generation tracks with contamination-aware time filtering.">
-  <link rel="stylesheet" href="static/style.css">
+  <link rel="stylesheet" href="static/style.css?v=202608261543">
 </head>
 <body>
 
@@ -326,497 +326,97 @@
 </div>
 
 <!-- =============================================================
-     TAB: DEBUG LOG
+     TAB: DEBUG LOG  (Pipeline Filtering Explorer — data-driven)
 ============================================================= -->
 <div class="tab-panel" id="panel-debug">
   <div class="tab-hero">
     <div class="container">
-      <h1 class="tab-hero-title">Debug Log</h1>
-      <p class="tab-hero-desc">20 candidate repositories were evaluated during data collection. The 5 that built successfully but yielded no qualifying co-evolution pairs are noted below; the remaining 15 are catalogued here with the exact pipeline stage and error that caused exclusion.</p>
+      <h1 class="tab-hero-title">Pipeline Debug</h1>
+      <p class="tab-hero-desc">Why repositories and commits were filtered during data collection. Every row is backed by the pipeline's own logs: pick a stage or a reason, then expand a repository for its full stage history and log excerpt.</p>
     </div>
   </div>
-
   <section class="container">
+    <div class="flt-pools-info">
+      <div class="flt-pools-item"><span class="flt-pool-tag">Pool A</span>
+        The original crawl: GitHub Java/Maven repositories with <strong>&ge;&thinsp;300 stars</strong>.
+        No activity requirement &mdash; popularity only, so many are dormant.</div>
+      <div class="flt-pools-item"><span class="flt-pool-tag">Pool C</span>
+        A later crawl of <strong>100&ndash;299-star</strong> repositories that are <strong>recently
+        active</strong> (&ge;&thinsp;20 commits in the trailing 12 months), added to bias the
+        dataset toward live projects.</div>
+    </div>
+    <p class="flt-snapshot" id="flt-snapshot">Loading…</p>
 
-    <h2>Exclusion summary</h2>
-    <p style="color:var(--ink-soft);margin-bottom:24px;">Each row shows the pipeline stage where processing stopped and the root cause. Expand any row to see the relevant log excerpt.</p>
-
-    <!-- ── Category 1: License check ─────────────────────────── -->
-    <h3 class="dbg-cat">License check failed</h3>
-    <p class="dbg-cat-note">The collect-repo stage validates that each repository carries a permissive open-source license (Apache 2.0 or MIT). Repositories with other licences are dropped before any build is attempted.</p>
-
-    <div class="dbg-table">
-
-      <details class="dbg-row">
-        <summary>
-          <span class="dbg-repo">BaseXdb / basex</span>
-          <span class="dbg-stage">collect_repo</span>
-          <span class="dbg-reason">BSD 3-Clause license — not in allowed set</span>
-        </summary>
-        <div class="dbg-log">
-          <div class="dbg-log-inner">
-<pre>license=BSD 3-Clause "New" or "Revised" License</pre>
-          </div>
-          <p class="dbg-explanation">The pipeline accepts only Apache-2.0 and MIT licensed repositories. BaseX carries a BSD 3-Clause license, so it was dropped at collection time before any Maven build was run.</p>
+    <div class="controls flt-controls">
+      <div class="control-group">
+        <label>Pools</label>
+        <div class="track-toggles">
+          <label class="chip"><input type="checkbox" id="flt-pool-A" checked><span>Pool A &middot; &ge;300&#9733;</span></label>
+          <label class="chip"><input type="checkbox" id="flt-pool-C" checked><span>Pool C &middot; 100&ndash;299&#9733;</span></label>
         </div>
-      </details>
-
-      <details class="dbg-row">
-        <summary>
-          <span class="dbg-repo">openmrs / openmrs-core</span>
-          <span class="dbg-stage">collect_repo</span>
-          <span class="dbg-reason">Unrecognised license ("Other")</span>
-        </summary>
-        <div class="dbg-log">
-          <div class="dbg-log-inner">
-<pre>license=Other</pre>
-          </div>
-          <p class="dbg-explanation">GitHub classifies this repository's license as "Other" — a custom or composite license that cannot be automatically verified as permissive. The pipeline rejects such repositories to avoid redistribution ambiguity.</p>
-        </div>
-      </details>
-
-    </div><!-- /.dbg-table -->
-
-    <!-- ── Category 2: No qualifying commits ─────────────────── -->
-    <h3 class="dbg-cat">No qualifying commits</h3>
-    <p class="dbg-cat-note">After cloning, the pipeline scans the Git history for commits that touch Java source files. Repositories with no such commits are abandoned early.</p>
-
-    <div class="dbg-table">
-
-      <details class="dbg-row">
-        <summary>
-          <span class="dbg-repo">apache / commons-math</span>
-          <span class="dbg-stage">commit_extraction</span>
-          <span class="dbg-reason">No commits with Java file changes found</span>
-        </summary>
-        <div class="dbg-log">
-          <div class="dbg-log-inner">
-<pre>No commits with Java file changes found in repository</pre>
-          </div>
-          <p class="dbg-explanation">The scanned branch of commons-math contained no commits in which a <code>.java</code> source file was modified. This typically occurs when a repository has been migrated or the branch is a documentation/release branch with no source commits in the analysed window.</p>
-        </div>
-      </details>
-
+      </div>
+      <div class="control-group">
+        <label title="The stage where each repository's journey ended — kept repos end at S5">Decided at stage</label>
+        <select id="flt-stage" class="flt-select">
+          <option value="all">All stages</option>
+          <option value="s1">S1 Discover (Pool-C drops)</option>
+          <option value="s2">S2 Qualify</option>
+          <option value="s3">S3 Build anchor</option>
+          <option value="s4">S4 Mine commits</option>
+          <option value="s5">S5 Classify records</option>
+        </select>
+      </div>
+      <div class="control-group">
+        <label>Status</label>
+        <select id="flt-status" class="flt-select">
+          <option value="all">All</option>
+          <option value="kept">Kept</option>
+          <option value="survived">Survived stage</option>
+          <option value="dropped">Dropped</option>
+          <option value="in_flight">In flight</option>
+        </select>
+      </div>
+      <div class="control-group">
+        <label>Reason</label>
+        <select id="flt-reason" class="flt-select"><option value="all">All reasons</option></select>
+      </div>
+      <div class="control-group search grow">
+        <label>Search repo</label>
+        <input type="text" id="flt-search" placeholder="e.g. commons-io, Esri">
+      </div>
     </div>
 
-    <!-- ── Category 3: Maven dependency resolution ───────────── -->
-    <h3 class="dbg-cat">Maven dependency resolution failure</h3>
-    <p class="dbg-cat-note">Multi-module Maven projects where a sibling module hasn't been installed in the local repository, or where a dependency is only available via a now-unreachable HTTP mirror, fail during the collect-repo build step.</p>
+    <div class="stat-grid flt-tiles" id="flt-tiles"></div>
 
-    <div class="dbg-table">
+    <p class="flt-sk-lead" id="flt-sk-lead"></p>
+    <div class="flt-sk-scroll"><div id="flt-sankey"></div></div>
 
-      <details class="dbg-row">
-        <summary>
-          <span class="dbg-repo">springside / springside4</span>
-          <span class="dbg-stage">collect_repo</span>
-          <span class="dbg-reason">Unresolvable sibling artifact <code>springside-utils</code></span>
-        </summary>
-        <div class="dbg-log">
-          <div class="dbg-log-inner">
-<pre>[ERROR] Failed to execute goal on project springside-core: Could not resolve dependencies
-[ERROR] dependency: io.springside:springside-utils:jar:5.0.0-SNAPSHOT (compile)
-[ERROR]   Could not find artifact io.springside:springside-utils:jar:5.0.0-SNAPSHOT
-[ERROR]
-[ERROR] After correcting the problems, you can resume the build with the command
-[ERROR]   mvn &lt;args&gt; -rf :springside-core</pre>
-          </div>
-          <p class="dbg-explanation">The <code>springside-core</code> module depends on <code>springside-utils</code> from the same multi-module project, but that sibling jar was never installed into the local Maven repository. The build environment uses an offline or partially-warm Maven cache, so the artifact cannot be resolved.</p>
-        </div>
-      </details>
+    <div class="flt-funnel" id="flt-funnel"></div>
 
-      <details class="dbg-row">
-        <summary>
-          <span class="dbg-repo">shred / acme4j</span>
-          <span class="dbg-stage">collect_repo</span>
-          <span class="dbg-reason">Unresolvable sibling artifact <code>acme4j-client</code></span>
-        </summary>
-        <div class="dbg-log">
-          <div class="dbg-log-inner">
-<pre>[ERROR] Failed to execute goal on project acme4j-smime: Could not resolve dependencies
-[ERROR] dependency: org.shredzone.acme4j:acme4j-client:jar:3.5.2-SNAPSHOT (compile)
-[ERROR]   Could not find artifact org.shredzone.acme4j:acme4j-client:jar:3.5.2-SNAPSHOT
-[ERROR]
-[ERROR] After correcting the problems, you can resume the build with the command
-[ERROR]   mvn &lt;args&gt; -rf :acme4j-smime</pre>
-          </div>
-          <p class="dbg-explanation">The <code>acme4j-smime</code> submodule requires a SNAPSHOT build of <code>acme4j-client</code> from the same repository. Because the sibling was not previously installed in the local Maven cache, dependency resolution fails before any source is compiled.</p>
-        </div>
-      </details>
+    <details class="flt-wf" id="flt-commitfunnel">
+      <summary id="flt-wf-summary">Commit-level funnel</summary>
+      <p class="flt-wf-stats" id="flt-wf-stats"></p>
+      <div id="flt-wf-body"></div>
+    </details>
 
-      <details class="dbg-row">
-        <summary>
-          <span class="dbg-repo">dayatang / dddlib</span>
-          <span class="dbg-stage">collect_repo</span>
-          <span class="dbg-reason">HTTP Maven mirror blocked by Maven's default mirror-blocker</span>
-        </summary>
-        <div class="dbg-log">
-          <div class="dbg-log-inner">
-<pre>[ERROR] Failed to collect dependencies for dddlib-cache-memcached:
-[ERROR] Failed to read artifact descriptor for com.danga:java-memcached:jar:2.6.3
-[ERROR]   Caused by: Could not transfer artifact com.danga:java-memcached:pom:2.6.3
-[ERROR]   from/to maven-default-http-blocker (http://0.0.0.0/):
-[ERROR]   Blocked mirror for repositories:
-[ERROR]     dayatang-releases  (http://nexus.dayatang.org/content/groups/public-releases)
-[ERROR]     dayatang-snapshots (http://nexus.dayatang.org/content/groups/public-snapshots)</pre>
-          </div>
-          <p class="dbg-explanation">Since Maven 3.8.1, plain-HTTP (non-HTTPS) repository URLs are blocked by default. This project's <code>pom.xml</code> still references a custom HTTP Nexus mirror at <code>nexus.dayatang.org</code>. Maven refuses the connection, making <code>com.danga:java-memcached</code> unresolvable.</p>
-        </div>
-      </details>
+    <div class="flt-chips" id="flt-chips"></div>
+    <p class="tw-summary" id="flt-count"></p>
 
-    </div>
-
-    <!-- ── Category 4: JDK version mismatch ─────────────────── -->
-    <h3 class="dbg-cat">JDK version mismatch</h3>
-    <p class="dbg-cat-note">Some projects enforce a minimum JDK version via the Maven Enforcer plugin, or use a compiler target release higher than the available JDK. The build environment provides JDK 8, 11, and 17; projects requiring JDK 21 or enforcing a range that excludes the available version fail here.</p>
-
-    <div class="dbg-table">
-
-      <details class="dbg-row">
-        <summary>
-          <span class="dbg-repo">google / gson</span>
-          <span class="dbg-stage">mvn_test_compile</span>
-          <span class="dbg-reason">Enforcer requires JDK 17–22; available JDK is 11.0.23</span>
-        </summary>
-        <div class="dbg-log">
-          <div class="dbg-log-inner">
-<pre>[ERROR] Rule 1: org.apache.maven.enforcer.rules.version.RequireJavaVersion failed:
-[ERROR] Detected JDK /…/jdk-11.0.23 is version 11.0.23 which is not in the allowed range [17,22).
-[INFO] BUILD FAILURE — Total time: 0.840 s</pre>
-          </div>
-          <p class="dbg-explanation">Gson 2.13.x requires at least JDK 17 (and below 22) as declared in its Enforcer configuration. The pipeline selected JDK 11 for this project, causing an immediate Enforcer failure before any sources were compiled.</p>
-        </div>
-      </details>
-
-      <details class="dbg-row">
-        <summary>
-          <span class="dbg-repo">prebid / prebid-server-java</span>
-          <span class="dbg-stage">mvn_test_compile</span>
-          <span class="dbg-reason">Compiler target <code>21</code> not supported by available JDK</span>
-        </summary>
-        <div class="dbg-log">
-          <div class="dbg-log-inner">
-<pre>[ERROR] Failed to execute goal maven-compiler-plugin:3.14.1:compile:
-[ERROR]   Fatal error compiling: error: invalid target release: 21
-[INFO] BUILD FAILURE — Total time: 38.759 s</pre>
-          </div>
-          <p class="dbg-explanation">The project's <code>pom.xml</code> sets <code>&lt;maven.compiler.target&gt;21&lt;/maven.compiler.target&gt;</code>. The JDK available to the build does not support Java 21 bytecode, so <code>javac</code> rejects the target release. 2002 source files were processed before the error was detected.</p>
-        </div>
-      </details>
-
-    </div>
-
-    <!-- ── Category 5: Test compile error ───────────────────── -->
-    <h3 class="dbg-cat">Test compilation failure</h3>
-    <p class="dbg-cat-note">A project may compile its main sources successfully but fail to compile its test sources when a test-scope dependency was itself compiled for a newer JDK.</p>
-
-    <div class="dbg-table">
-
-      <details class="dbg-row">
-        <summary>
-          <span class="dbg-repo">jfree / jfreechart</span>
-          <span class="dbg-stage">mvn_test_compile</span>
-          <span class="dbg-reason"><code>equalsverifier-4.0.jar</code> compiled for Java 17; project targets Java 11</span>
-        </summary>
-        <div class="dbg-log">
-          <div class="dbg-log-inner">
-<pre>[WARNING] Can't extract module name from equalsverifier-4.0.jar: Unsupported major.minor version 61.0
-[ERROR] COMPILATION ERROR:
-[ERROR] CrosshairTest.java:[46,30] cannot access nl.jqno.equalsverifier.EqualsVerifier
-  bad class file: equalsverifier-4.0.jar(…/EqualsVerifier.class)
-    class file has wrong version 61.0, should be 55.0
-[ERROR] 7 errors
-[INFO] BUILD FAILURE — Total time: 13.905 s</pre>
-          </div>
-          <p class="dbg-explanation">Java class file version 61.0 corresponds to Java 17; version 55.0 corresponds to Java 11. <code>equalsverifier 4.0</code> was compiled with JDK 17 but JFreeChart's test classpath is built against Java 11 release mode, creating an incompatible class-file version error in <code>CrosshairTest</code>.</p>
-        </div>
-      </details>
-
-    </div>
-
-    <!-- ── Category 6: RAT license check ────────────────────── -->
-    <h3 class="dbg-cat">Apache RAT license audit failure</h3>
-    <p class="dbg-cat-note">Apache Commons projects run the Apache RAT (Release Audit Tool) plugin during the build to verify that every file carries an approved license header. RAT flags any file without a recognised header, causing a build failure even though all Java sources compile and tests pass.</p>
-
-    <div class="dbg-table">
-
-      <details class="dbg-row">
-        <summary>
-          <span class="dbg-repo">apache / commons-collections</span>
-          <span class="dbg-stage">jacoco_coverage</span>
-          <span class="dbg-reason">RAT found 1 unapproved file: <code>class_path.txt</code></span>
-        </summary>
-        <div class="dbg-log">
-          <div class="dbg-log-inner">
-<pre>[ERROR] Unexpected count for UNAPPROVED, limit is [0,0]. Count: 1
-Files with unapproved licenses:
-  /class_path.txt
-[ERROR] Failed to execute goal apache-rat-plugin:0.17:check (rat-check):
-        Counter(s) UNAPPROVED exceeded minimum or maximum values.
-[INFO] BUILD FAILURE — Total time: 9.755 s</pre>
-          </div>
-          <p class="dbg-explanation">The JaCoCo agent writes a <code>class_path.txt</code> helper file that does not include an Apache license header. RAT treats this as an unapproved file and fails the build. The issue is an interaction between the JaCoCo instrumentation step and the RAT audit, not a problem with the project's own sources.</p>
-        </div>
-      </details>
-
-      <details class="dbg-row">
-        <summary>
-          <span class="dbg-repo">apache / commons-lang</span>
-          <span class="dbg-stage">jacoco_coverage</span>
-          <span class="dbg-reason">RAT found 1 unapproved file: <code>class_path.txt</code></span>
-        </summary>
-        <div class="dbg-log">
-          <div class="dbg-log-inner">
-<pre>[ERROR] Unexpected count for UNAPPROVED, limit is [0,0]. Count: 1
-Files with unapproved licenses:
-  /class_path.txt
-[ERROR] Failed to execute goal apache-rat-plugin:0.17:check (rat-check):
-        Counter(s) UNAPPROVED exceeded minimum or maximum values.
-[INFO] BUILD FAILURE — Total time: 11.263 s</pre>
-          </div>
-          <p class="dbg-explanation">Same root cause as commons-collections: the JaCoCo agent deposits a <code>class_path.txt</code> file at the repo root, which the RAT plugin then flags as lacking a license header.</p>
-        </div>
-      </details>
-
-    </div>
-
-    <!-- ── Category 7: Test runtime failures ────────────────── -->
-    <h3 class="dbg-cat">Test runtime failure</h3>
-    <p class="dbg-cat-note">These repositories compile cleanly and most tests pass, but one or more test cases fail at runtime due to missing cryptographic algorithms or timing-sensitive assertions.</p>
-
-    <div class="dbg-table">
-
-      <details class="dbg-row">
-        <summary>
-          <span class="dbg-repo">apache / commons-codec</span>
-          <span class="dbg-stage">jacoco_coverage</span>
-          <span class="dbg-reason">JDK missing SHA-512/224 and SHA-512/256 MessageDigest providers</span>
-        </summary>
-        <div class="dbg-log">
-          <div class="dbg-log-inner">
-<pre>[ERROR] Errors:
-[ERROR]   DigestUtilsTest.testGetDigests:435 » IllegalArgument
-          java.security.NoSuchAlgorithmException: SHA-512/224 MessageDigest not available
-[ERROR]   DigestUtilsTest.testSha512_224:801 » IllegalArgument
-          java.security.NoSuchAlgorithmException: SHA-512/224 MessageDigest not available
-[ERROR]   DigestUtilsTest.testSha512_256:821 » IllegalArgument
-          java.security.NoSuchAlgorithmException: SHA-512/256 MessageDigest not available
-[ERROR] Tests run: 19015, Failures: 0, Errors: 3, Skipped: 74
-[INFO] BUILD FAILURE — Total time: 49.621 s</pre>
-          </div>
-          <p class="dbg-explanation">SHA-512/224 and SHA-512/256 are truncated variants of SHA-512 defined in FIPS 180-4. They were added to the standard JDK security providers only in JDK 17. The build environment ran this project under an older JDK that does not include these providers, causing three <code>DigestUtilsTest</code> cases to throw <code>NoSuchAlgorithmException</code>.</p>
-        </div>
-      </details>
-
-      <details class="dbg-row">
-        <summary>
-          <span class="dbg-repo">alibaba / nacos</span>
-          <span class="dbg-stage">jacoco_coverage</span>
-          <span class="dbg-reason">Timing-sensitive cache-cleanup test flake in <code>nacos-ai</code> module</span>
-        </summary>
-        <div class="dbg-log">
-          <div class="dbg-log-inner">
-<pre>[ERROR] Tests run: 38, Failures: 1, Errors: 0, Skipped: 0 &lt;&lt;&lt; FAILURE!
-        -- in com.alibaba.nacos.ai.index.MemoryMcpCacheIndexTest
-[ERROR] MemoryMcpCacheIndexTest.testCleanupExpiredEntriesDoesNotAffectValidEntries
-        -- Time elapsed: 1.114 s &lt;&lt;&lt; FAILURE!
-[ERROR] Failures:
-[ERROR]   MemoryMcpCacheIndexTest.testCleanupExpiredEntriesDoesNotAffectValidEntries:627
-          expected: &lt;id1&gt; but was: &lt;null&gt;
-[ERROR] Tests run: 474, Failures: 1, Errors: 0, Skipped: 0
-[INFO] nacos-ai 3.2.0-SNAPSHOT ... FAILURE [24.789 s]
-[INFO] BUILD FAILURE</pre>
-          </div>
-          <p class="dbg-explanation">The test asserts that a cache entry is still present after a background cleanup sweep, but the cleanup task ran and evicted the entry before the assertion was reached. This is a classic time-dependent race: the test expects <code>id1</code> to survive the cleanup window but the CI environment's scheduling pressure caused the cleanup to fire early, returning <code>null</code> instead.</p>
-        </div>
-      </details>
-
-    </div>
-
-    <!-- ── Category 8: Build timeout ────────────────────────── -->
-    <h3 class="dbg-cat">Build timeout</h3>
-    <p class="dbg-cat-note">The pipeline enforces a hard 1800-second (30-minute) wall-clock limit on <code>mvn test</code>. Very large monorepos with heavyweight integration tests can exceed this limit.</p>
-
-    <div class="dbg-table">
-
-      <details class="dbg-row">
-        <summary>
-          <span class="dbg-repo">apache / rocketmq</span>
-          <span class="dbg-stage">jacoco_coverage</span>
-          <span class="dbg-reason">mvn test timed out after 1800 s; broker cluster tests deadlocked on metadata</span>
-        </summary>
-        <div class="dbg-log">
-          <div class="dbg-log-inner">
-<pre>jacoco `mvn test` timed out after 1800s
-
-… (27 000+ lines of test output) …
-
-ERROR [RocketmqBroker] Register to broker failed 5 times
-ERROR [RocketmqBroker] Failed to start replicasManager
-ERROR [RocketmqBroker] fail to apply broker id: 1
-ERROR [RocketmqBroker] The clusterName: default-cluster in broker metadata is different
-                        from the clusterName: default-cluster1 in broker config
-ERROR [RocketmqBroker] Check and find that metadata/tempMetadata invalid
-
-… (broker registration retry loop repeated hundreds of times) …
-
-Caused by: org.apache.rocketmq.filter.parser.ParseException:
-  Encountered " &lt;ID&gt; "x "" at line 1, column 16. Was expecting: &lt;STRING_LITERAL&gt;</pre>
-          </div>
-          <p class="dbg-explanation">RocketMQ's broker integration tests spin up an in-process broker cluster. Several tests entered a retry loop when the broker could not register with the controller (mismatched <code>clusterName</code> in metadata vs. config), consuming the full 1800-second budget before the Maven Surefire plugin could terminate them. Additionally, <code>ExpressionTest</code> exposed a parser failure when non-string literals appear in selector positions.</p>
-        </div>
-      </details>
-
-    </div>
-
-    <!-- ── Category 9: Silent instrumentation failure ────────── -->
-    <h3 class="dbg-cat">Silent instrumentation failure</h3>
-    <p class="dbg-cat-note">Code instrumentation (bytecode rewriting to track which lines are executed) is a prerequisite for collecting coverage data. A silent failure — no stdout, no stderr — indicates the instrumentation process crashed or was killed before producing any output.</p>
-
-    <div class="dbg-table">
-
-      <details class="dbg-row">
-        <summary>
-          <span class="dbg-repo">apache / shenyu</span>
-          <span class="dbg-stage">instrumentation</span>
-          <span class="dbg-reason">Instrumentation produced no output — process exited silently</span>
-        </summary>
-        <div class="dbg-log">
-          <div class="dbg-log-inner">
-<pre>=== STDOUT ===
-(empty)
-
-=== STDERR ===
-(empty)</pre>
-          </div>
-          <p class="dbg-explanation">The instrumentation worker for <code>apache/shenyu</code> produced neither standard output nor standard error. The most common causes are an out-of-memory crash before any logging could occur, a JVM abort signal, or the container being killed by the OS due to resource exhaustion. Without any log output the precise cause cannot be determined from this artefact alone.</p>
-        </div>
-      </details>
-
-    </div>
-
-    <!-- ── Category 10: Build OK / no pairs ─────────────────── -->
-    <h3 class="dbg-cat">Build succeeded — no qualifying co-evolution pairs</h3>
-    <p class="dbg-cat-note">These repositories passed every build and coverage step. They were excluded because the commit-pair extraction process found no commits in which a production-code change was accompanied by a co-located, meaningful change to a test file — the defining criterion for a TestEvo-Bench task.</p>
-
-    <div class="dbg-table">
-
-      <details class="dbg-row">
-        <summary>
-          <span class="dbg-repo">Aiven-Open / klaw</span>
-          <span class="dbg-stage">build_ok</span>
-          <span class="dbg-reason">79 tests · Java 17 · no paired production+test commit found</span>
-        </summary>
-        <div class="dbg-log">
-          <div class="dbg-log-inner">
-<pre>BUILD OK — no failure log for this project.
-
-{
-  "source": "_work/repo_data/build_logs/dbg-all/klaw-main.json",
-  "repo_name": "Aiven-Open_klaw-main",
-  "commit": "c5ac04c83985ac01c6127aef4170879a1ad3cf89",
-  "java_version": 17,
-  "test_count": 79,
-  "timestamp": "2026-08-02 22:24:18"
-}</pre>
-          </div>
-          <p class="dbg-explanation">The build and test suite ran cleanly (79 tests). However, scanning the commit history found no rev-pair where a production method change was accompanied by a co-located change to an existing test file. Klaw's test changes tend to be independent of production changes or appear in separate commits, so no co-evolution task could be constructed.</p>
-        </div>
-      </details>
-
-      <details class="dbg-row">
-        <summary>
-          <span class="dbg-repo">apache / commons-cli</span>
-          <span class="dbg-stage">build_ok</span>
-          <span class="dbg-reason">47 tests · Java 8 · no paired production+test commit found</span>
-        </summary>
-        <div class="dbg-log">
-          <div class="dbg-log-inner">
-<pre>BUILD OK — no failure log for this project.
-
-{
-  "source": "_work/repo_data/build_logs/dbg-all/commons-cli-master.json",
-  "repo_name": "apache_commons-cli-master",
-  "commit": "fd459881e010fadcd3b26e36bafbc90163643ac6",
-  "java_version": 8,
-  "test_count": 47,
-  "timestamp": "2026-08-03 06:29:32"
-}</pre>
-          </div>
-          <p class="dbg-explanation">Commons CLI has a relatively small and stable test suite (47 tests). Commits to this library tend to add new CLI option parsing behaviour without simultaneously modifying existing tests in the same commit, leaving no co-evolution signal to extract.</p>
-        </div>
-      </details>
-
-      <details class="dbg-row">
-        <summary>
-          <span class="dbg-repo">apache / commons-compress</span>
-          <span class="dbg-stage">build_ok</span>
-          <span class="dbg-reason">226 tests · Java 8 · no paired production+test commit found</span>
-        </summary>
-        <div class="dbg-log">
-          <div class="dbg-log-inner">
-<pre>BUILD OK — no failure log for this project.
-
-{
-  "source": "_work/repo_data/build_logs/dbg-all/commons-compress-master.json",
-  "repo_name": "apache_commons-compress-master",
-  "commit": "e14b7959d14dfb3c3f57320906c759fd62481575",
-  "java_version": 8,
-  "test_count": 226,
-  "timestamp": "2026-08-03 06:43:58"
-}</pre>
-          </div>
-          <p class="dbg-explanation">Despite a healthy test suite (226 tests), the commit history shows that production changes and test updates in commons-compress are consistently committed separately rather than as a single co-evolution commit, making it impossible to extract paired tasks under the benchmark's strict same-commit requirement.</p>
-        </div>
-      </details>
-
-      <details class="dbg-row">
-        <summary>
-          <span class="dbg-repo">apache / commons-csv</span>
-          <span class="dbg-stage">build_ok</span>
-          <span class="dbg-reason">37 tests · Java 8 · no paired production+test commit found</span>
-        </summary>
-        <div class="dbg-log">
-          <div class="dbg-log-inner">
-<pre>BUILD OK — no failure log for this project.
-
-{
-  "source": "_work/repo_data/build_logs/dbg-all/commons-csv-master.json",
-  "repo_name": "apache_commons-csv-master",
-  "commit": "f69dac72c401830e20a7120874396abe6c800d2a",
-  "java_version": 8,
-  "test_count": 37,
-  "timestamp": "2026-08-03 06:30:04"
-}</pre>
-          </div>
-          <p class="dbg-explanation">Commons CSV has a small test suite (37 tests). Changes to CSV parsing logic are typically committed alone, with test additions arriving in follow-up commits. No commit in the scanned window contained a simultaneous production-and-test change pair.</p>
-        </div>
-      </details>
-
-      <details class="dbg-row">
-        <summary>
-          <span class="dbg-repo">OpenAPITools / openapi-generator</span>
-          <span class="dbg-stage">build_ok</span>
-          <span class="dbg-reason">223 tests · Java 11 · no paired production+test commit found</span>
-        </summary>
-        <div class="dbg-log">
-          <div class="dbg-log-inner">
-<pre>BUILD OK — no failure log for this project.
-
-{
-  "source": "_work/repo_data/build_logs/dbg-all/openapi-generator-master.json",
-  "repo_name": "OpenAPITools_openapi-generator-master",
-  "commit": "873e27233b4da3ee8200f7b9bd26af73e772724c",
-  "java_version": 11,
-  "test_count": 223,
-  "timestamp": "2026-08-02 22:43:20"
-}</pre>
-          </div>
-          <p class="dbg-explanation">OpenAPI Generator's test suite (223 tests) is largely generated rather than hand-authored, and generator template changes do not co-evolve with specific Java test files within the same commit. No qualifying production+test rev-pair could be extracted.</p>
-        </div>
-      </details>
-
-    </div>
-
+    <table class="explorer-table" id="flt-table">
+      <thead>
+        <tr>
+          <th class="col-expand"></th>
+          <th class="col-repo sortable" data-sort="name">Repository<span class="sort-arrow"></span></th>
+          <th>Pool</th>
+          <th class="sortable" data-sort="stage">Stage<span class="sort-arrow"></span></th>
+          <th>Status</th>
+          <th>Reason</th>
+          <th class="col-num sortable" data-sort="rec">Records<span class="sort-arrow">&darr;</span></th>
+          <th class="col-num sortable" data-sort="tsk">Tasks<span class="sort-arrow"></span></th>
+        </tr>
+      </thead>
+      <tbody id="flt-tbody"><tr><td colspan="8" class="loading">Loading pipeline data&hellip;</td></tr></tbody>
+    </table>
   </section>
 </div>
 
@@ -847,7 +447,8 @@ Caused by: org.apache.rocketmq.filter.parser.ParseException:
   });
 })();
 </script>
-<script src="static/explorer.js"></script>
-<script src="static/leaderboard.js"></script>
+<script src="static/explorer.js?v=202608261543"></script>
+<script src="static/leaderboard.js?v=202608261543"></script>
+<script src="static/filter.js?v=202608261543"></script>
 </body>
 </html>

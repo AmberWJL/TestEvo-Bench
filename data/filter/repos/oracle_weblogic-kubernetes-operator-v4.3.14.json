@@ -1,0 +1,1 @@
+{"repo_name":"oracle_weblogic-kubernetes-operator-v4.3.14","display_name":"oracle/weblogic-kubernetes-operator","github_url":"https://github.com/oracle/weblogic-kubernetes-operator","pool":"C","stars":267,"stages":[{"id":"s2","outcome":"bad_license","detail":{"license":"Universal Permissive License v1.0","version":"v4.3.14","version_source":"release_tag"}}]}

@@ -1,0 +1,1 @@
+{"repo_name":"awslabs_amazon-kinesis-agent-v2.0.13","display_name":"awslabs/amazon-kinesis-agent","github_url":"https://github.com/awslabs/amazon-kinesis-agent","pool":"A","stars":374,"stages":[{"id":"s2","outcome":"bad_license","detail":{"license":"Other","version":"v2.0.13","version_source":"release_tag"}}]}

@@ -1,0 +1,1 @@
+{"repo_name":"jenkinsci_acceptance-test-harness-6724.va_7c5c4b_fcf9c","display_name":"jenkinsci/acceptance-test-harness","github_url":"https://github.com/jenkinsci/acceptance-test-harness","pool":"C","stars":131,"stages":[{"id":"s2","outcome":"no_license_404","detail":{"license":"No License (404)","version":"6724.va_7c5c4b_fcf9c","version_source":"release_tag"}}]}

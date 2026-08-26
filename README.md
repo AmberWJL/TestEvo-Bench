@@ -45,6 +45,23 @@ Then copy `website/data/` back into this repo and commit.
 This site is served via GitHub Pages from the `main` branch, root directory.
 `.nojekyll` is present so the `data/` directory is not mangled.
 
+
+## Regenerating `data/filter/` (Pipeline Debug tab)
+
+The Debug tab's filtering explorer is built from the research repo's pipeline
+artifacts (Stage-2 ledgers, build logs, Stage-4 ledger + logs, per-repo JSONL):
+
+```
+python3 scripts/build_filter_data.py \
+    --internal-root /home/amberwang/test-update-internal \
+    --out-dir TestEvo-Bench/data/filter
+```
+
+The builder validates structural invariants, scrubs paths/IPs from log
+excerpts, and writes `index.json`, `repos/*.json`, `stage1_poolC_dropped.json`
+and `reconciliation.txt`. It refuses to run while a Stage-3/4 dispatcher looks
+live (`--force` to snapshot mid-flight). `update-site.sh` runs it as step 1b.
+
 ## Submitting to the leaderboard
 
 See the "How to submit" section on the site itself.

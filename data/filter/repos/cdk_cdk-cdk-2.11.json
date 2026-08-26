@@ -1,0 +1,1 @@
+{"repo_name":"cdk_cdk-cdk-2.11","display_name":"cdk/cdk","github_url":"https://github.com/cdk/cdk","pool":"A","stars":594,"stages":[{"id":"s2","outcome":"success","detail":{"version":"cdk-2.11","version_source":"release_tag"}},{"id":"s3","outcome":"built","notes":[],"test_count":1031},{"id":"s4","outcome":"excluded_2019w: retry_exhausted","notes":[],"decided_in":"all-run"}]}

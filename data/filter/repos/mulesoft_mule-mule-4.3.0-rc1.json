@@ -1,0 +1,1 @@
+{"repo_name":"mulesoft_mule-mule-4.3.0-rc1","display_name":"mulesoft/mule","github_url":"https://github.com/mulesoft/mule","pool":"A","stars":500,"stages":[{"id":"s2","outcome":"bad_license","detail":{"license":"Other","version":"mule-4.3.0-rc1","version_source":"release_tag"}}]}

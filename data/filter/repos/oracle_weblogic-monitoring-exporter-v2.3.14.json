@@ -1,0 +1,1 @@
+{"repo_name":"oracle_weblogic-monitoring-exporter-v2.3.14","display_name":"oracle/weblogic-monitoring-exporter","github_url":"https://github.com/oracle/weblogic-monitoring-exporter","pool":"C","stars":112,"stages":[{"id":"s2","outcome":"bad_license","detail":{"license":"Universal Permissive License v1.0","version":"v2.3.14","version_source":"release_tag"}}]}

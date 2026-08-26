@@ -1,0 +1,3 @@
+1 population repo(s) with no S2 ledger record (synthetic S2 success, annotation s2_record_missing): apache_commons-lang-master
+1 repo(s) shown as kept because records exist although the ledger says otherwise (leash-orphan salvage, ledger flip pending): structurizr_structurizr-v2026.06.28
+1 repos have a JSONL but no ledger success (in-flight/salvage?): structurizr_structurizr-v2026.06.28

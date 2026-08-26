@@ -1,0 +1,1 @@
+{"repo_name":"jenkinsci_winstone-8.1047.v331d3186f463","display_name":"jenkinsci/winstone","github_url":"https://github.com/jenkinsci/winstone","pool":"C","stars":106,"stages":[{"id":"s2","outcome":"bad_license","detail":{"license":"Other","version":"8.1047.v331d3186f463","version_source":"release_tag"}}]}

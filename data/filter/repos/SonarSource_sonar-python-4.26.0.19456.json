@@ -1,0 +1,1 @@
+{"repo_name":"SonarSource_sonar-python-4.26.0.19456","display_name":"SonarSource/sonar-python","github_url":"https://github.com/SonarSource/sonar-python","pool":"C","stars":251,"stages":[{"id":"s2","outcome":"bad_license","detail":{"license":"Other","version":"4.26.0.19456","version_source":"release_tag"}}]}

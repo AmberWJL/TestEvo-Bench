@@ -1,0 +1,1 @@
+{"repo_name":"hazelcast_hazelcast-jet-v4.5.4","display_name":"hazelcast/hazelcast-jet","github_url":"https://github.com/hazelcast/hazelcast-jet","pool":"A","stars":1110,"stages":[{"id":"s2","outcome":"bad_license","detail":{"license":"Other","version":"v4.5.4","version_source":"release_tag"}}]}

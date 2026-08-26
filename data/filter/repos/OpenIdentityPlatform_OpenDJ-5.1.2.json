@@ -1,0 +1,1 @@
+{"repo_name":"OpenIdentityPlatform_OpenDJ-5.1.2","display_name":"OpenIdentityPlatform/OpenDJ","github_url":"https://github.com/OpenIdentityPlatform/OpenDJ","pool":"A","stars":435,"stages":[{"id":"s2","outcome":"bad_license","detail":{"license":"Other","version":"5.1.2","version_source":"release_tag"}}]}

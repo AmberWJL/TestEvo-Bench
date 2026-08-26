@@ -1,0 +1,1 @@
+{"repo_name":"confluentinc_ksql-v0.6.0-docs","display_name":"confluentinc/ksql","github_url":"https://github.com/confluentinc/ksql","pool":"A","stars":314,"stages":[{"id":"s2","outcome":"bad_license","detail":{"license":"Other","version":"v0.6.0-docs","version_source":"release_tag"}}]}

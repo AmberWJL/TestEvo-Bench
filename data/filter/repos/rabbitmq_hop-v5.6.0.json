@@ -1,0 +1,1 @@
+{"repo_name":"rabbitmq_hop-v5.6.0","display_name":"rabbitmq/hop","github_url":"https://github.com/rabbitmq/hop","pool":"C","stars":148,"stages":[{"id":"s2","outcome":"no_license_404","detail":{"license":"No License (404)","version":"v5.6.0","version_source":"release_tag"}}]}

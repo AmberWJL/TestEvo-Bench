@@ -1,0 +1,1 @@
+{"repo_name":"AdoptOpenJDK_jitwatch-1.5.0","display_name":"AdoptOpenJDK/jitwatch","github_url":"https://github.com/AdoptOpenJDK/jitwatch","pool":"A","stars":3302,"stages":[{"id":"s2","outcome":"bad_license","detail":{"license":"Other","version":"1.5.0","version_source":"release_tag"}}]}

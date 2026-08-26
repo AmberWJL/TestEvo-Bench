@@ -1,0 +1,1 @@
+{"repo_name":"chengdedeng_waf-2.0.0","display_name":"chengdedeng/waf","github_url":"https://github.com/chengdedeng/waf","pool":"A","stars":697,"stages":[{"id":"s2","outcome":"bad_license","detail":{"license":"Other","version":"2.0.0","version_source":"release_tag"}}]}

@@ -1,0 +1,1 @@
+{"repo_name":"jenkins-infra_update-center2-update-center2-3.18.3","display_name":"jenkins-infra/update-center2","github_url":"https://github.com/jenkins-infra/update-center2","pool":"C","stars":139,"stages":[{"id":"s2","outcome":"no_license_404","detail":{"license":"No License (404)","version":"update-center2-3.18.3","version_source":"release_tag"}}]}
