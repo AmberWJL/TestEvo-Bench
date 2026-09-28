@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>TestEvo-Bench — a live benchmark of co-evolving test/production pairs</title>
   <meta name="description" content="TestEvo-Bench is a continuously updated benchmark of co-evolving test and production code pairs mined from real open-source Java projects. Evaluate models on test update and test generation tracks with contamination-aware time filtering.">
-  <link rel="stylesheet" href="static/style.css?v=202608301802">
+  <link rel="stylesheet" href="static/style.css?v=202609281657">
 </head>
 <body>
 
@@ -20,7 +20,6 @@
         <button class="tab-btn active" data-tab="overview">Overview</button>
         <button class="tab-btn" data-tab="leaderboard">Leaderboard</button>
         <button class="tab-btn" data-tab="explorer">Data Explorer</button>
-        <button class="tab-btn" data-tab="debug">Debug Log</button>
       </div>
     </div>
   </div>
@@ -325,100 +324,6 @@
   </section>
 </div>
 
-<!-- =============================================================
-     TAB: DEBUG LOG  (Pipeline Filtering Explorer — data-driven)
-============================================================= -->
-<div class="tab-panel" id="panel-debug">
-  <div class="tab-hero">
-    <div class="container">
-      <h1 class="tab-hero-title">Pipeline Debug</h1>
-      <p class="tab-hero-desc">Why repositories and commits were filtered during data collection. Every row is backed by the pipeline's own logs: pick a stage or a reason, then expand a repository for its full stage history and log excerpt.</p>
-    </div>
-  </div>
-  <section class="container">
-    <div class="flt-pools-info">
-      <div class="flt-pools-item"><span class="flt-pool-tag">Pool A</span>
-        The original crawl: GitHub Java/Maven repositories with <strong>&ge;&thinsp;300 stars</strong>.
-        No activity requirement &mdash; popularity only, so many are dormant.</div>
-      <div class="flt-pools-item"><span class="flt-pool-tag">Pool C</span>
-        A later crawl of <strong>100&ndash;299-star</strong> repositories that are <strong>recently
-        active</strong> (&ge;&thinsp;20 commits in the trailing 12 months), added to bias the
-        dataset toward live projects.</div>
-    </div>
-    <p class="flt-snapshot" id="flt-snapshot">Loading…</p>
-
-    <div class="controls flt-controls">
-      <div class="control-group">
-        <label>Pools</label>
-        <div class="track-toggles">
-          <label class="chip"><input type="checkbox" id="flt-pool-A" checked><span>Pool A &middot; &ge;300&#9733;</span></label>
-          <label class="chip"><input type="checkbox" id="flt-pool-C" checked><span>Pool C &middot; 100&ndash;299&#9733;</span></label>
-        </div>
-      </div>
-      <div class="control-group">
-        <label title="The stage where each repository's journey ended — kept repos end at S5">Decided at stage</label>
-        <select id="flt-stage" class="flt-select">
-          <option value="all">All stages</option>
-          <option value="s1">S1 Discover (Pool-C drops)</option>
-          <option value="s2">S2 Qualify</option>
-          <option value="s3">S3 Build anchor</option>
-          <option value="s4">S4 Mine commits</option>
-          <option value="s5">S5 Classify records</option>
-        </select>
-      </div>
-      <div class="control-group">
-        <label>Status</label>
-        <select id="flt-status" class="flt-select">
-          <option value="all">All</option>
-          <option value="kept">Kept</option>
-          <option value="survived">Survived stage</option>
-          <option value="dropped">Dropped</option>
-          <option value="in_flight">In flight</option>
-        </select>
-      </div>
-      <div class="control-group">
-        <label>Reason</label>
-        <select id="flt-reason" class="flt-select"><option value="all">All reasons</option></select>
-      </div>
-      <div class="control-group search grow">
-        <label>Search repo</label>
-        <input type="text" id="flt-search" placeholder="e.g. commons-io, Esri">
-      </div>
-    </div>
-
-    <div class="stat-grid flt-tiles" id="flt-tiles"></div>
-
-    <p class="flt-sk-lead" id="flt-sk-lead"></p>
-    <div class="flt-sk-scroll"><div id="flt-sankey"></div></div>
-
-    <div class="flt-funnel" id="flt-funnel"></div>
-
-    <details class="flt-wf" id="flt-commitfunnel">
-      <summary id="flt-wf-summary">Commit-level funnel</summary>
-      <p class="flt-wf-stats" id="flt-wf-stats"></p>
-      <div id="flt-wf-body"></div>
-    </details>
-
-    <div class="flt-chips" id="flt-chips"></div>
-    <p class="tw-summary" id="flt-count"></p>
-
-    <table class="explorer-table" id="flt-table">
-      <thead>
-        <tr>
-          <th class="col-expand"></th>
-          <th class="col-repo sortable" data-sort="name">Repository<span class="sort-arrow"></span></th>
-          <th>Pool</th>
-          <th class="sortable" data-sort="stage">Stage<span class="sort-arrow"></span></th>
-          <th>Status</th>
-          <th>Reason</th>
-          <th class="col-num sortable" data-sort="rec">Records<span class="sort-arrow">&darr;</span></th>
-          <th class="col-num sortable" data-sort="tsk">Tasks<span class="sort-arrow"></span></th>
-        </tr>
-      </thead>
-      <tbody id="flt-tbody"><tr><td colspan="8" class="loading">Loading pipeline data&hellip;</td></tr></tbody>
-    </table>
-  </section>
-</div>
 
 <footer class="site-footer container">
   <p>
@@ -447,8 +352,7 @@
   });
 })();
 </script>
-<script src="static/explorer.js?v=202608301802"></script>
-<script src="static/leaderboard.js?v=202608301802"></script>
-<script src="static/filter.js?v=202608301802"></script>
+<script src="static/explorer.js?v=202609281657"></script>
+<script src="static/leaderboard.js?v=202609281657"></script>
 </body>
 </html>
