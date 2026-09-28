@@ -8,12 +8,11 @@
 (function () {
   const DATA_INDEX = "data/index.json";
   const REPO_DIR = "data/repos";
-  const TRACKS = ["test_update", "test_generation"];
-  const TRACK_SHORT = { test_update: "u", test_generation: "g" };
-  const SHORT_TRACK = { u: "test_update", g: "test_generation" };
-
-  // Default left edge: March 2020
-  const DEFAULT_MIN_MONTH = "2020-03";
+  const TRACKS = ["test_update", "test_generation", "test_refinement"];
+  const TRACK_SHORT = { test_update: "u", test_generation: "g", test_refinement: "r" };
+  const SHORT_TRACK = { u: "test_update", g: "test_generation", r: "test_refinement" };
+  const TRACK_TAG = { test_update: "tu", test_generation: "tg", test_refinement: "tr" };
+  const TRACK_SHORT_KEYS = { tu: 1, tg: 1, tr: 1 };
 
   // --- state ---
   const state = {
@@ -22,9 +21,10 @@
     minIdx: 0,
     maxIdx: 0,
     tracks: new Set(TRACKS),
+    liteOnly: false,
     search: "",
     repoDetailCache: {},
-    // Sorting. sortKey: 'tu' | 'tg' | 'total'; revSortDir: 'asc' | 'desc'
+    // Sorting. sortKey: 'tu' | 'tg' | 'tr' | 'total'; revSortDir: 'asc' | 'desc'
     sortKey: "total",
     sortDir: "desc",
     revSortDir: "asc",   // Date sort inside expanded rev-pair rows
@@ -116,19 +116,19 @@
     const grid = $("stat-grid");
     grid.innerHTML = "";
 
-    const tu = idx.stats.test_update;
-    const tg = idx.stats.test_generation;
-    const totalTasks = tu.tasks + tg.tasks;
-    const totalChanges = tu.changes + tg.changes;
-
-    const minDate = [tu.date_range[0], tg.date_range[0]].filter(Boolean).sort()[0];
-    const maxDate = [tu.date_range[1], tg.date_range[1]].filter(Boolean).sort().slice(-1)[0];
+    const st = TRACKS.map(t => idx.stats[t]);
+    const [tu, tg, tr] = st;
+    const sum = (k) => st.reduce((a, x) => a + x[k], 0);
+    const minDate = st.map(x => x.date_range[0]).filter(Boolean).sort()[0];
+    const maxDate = st.map(x => x.date_range[1]).filter(Boolean).sort().slice(-1)[0];
+    const perTrack = (k) => `${fmtNum(tu[k])} update · ${fmtNum(tg[k])} generation · ${fmtNum(tr[k])} refinement`;
 
     const tiles = [
-      { label: "Repositories", value: fmtNum(idx.repos.length), sub: `${tu.repos} in test update · ${tg.repos} in test generation` },
-      { label: "Tasks (rev pairs)", value: fmtNum(totalTasks), sub: `${fmtNum(tu.tasks)} update · ${fmtNum(tg.tasks)} gen` },
-      { label: "Test changes", value: fmtNum(totalChanges), sub: `${fmtNum(tu.changes)} update · ${fmtNum(tg.changes)} gen` },
-      { label: "Date range", value: `${minDate} → ${maxDate}`, sub: fmtDuration(minDate, maxDate) },
+      { label: "Tasks (Full)", value: fmtNum(sum("tasks")), sub: perTrack("tasks") },
+      { label: "Lite subset", value: fmtNum(idx.lite.tasks), sub: `${perTrack("lite_tasks")}; used for the leaderboard` },
+      { label: "Repositories", value: fmtNum(idx.repos.length), sub: `${fmtNum(idx.lite.repos)} in Lite` },
+      { label: "Target tests", value: fmtNum(sum("changes")), sub: "test methods an agent must write or edit" },
+      { label: "Commit dates", value: `${minDate.slice(0, 7)} → ${maxDate.slice(0, 7)}`, sub: fmtDuration(minDate, maxDate) },
     ];
     for (const t of tiles) {
       const d = document.createElement("div");
@@ -170,19 +170,20 @@
     lb: { range_min: "tw-range-min-lb", range_max: "tw-range-max-lb",
           input_min: "tw-input-min-lb", input_max: "tw-input-max-lb",
           active: "tw-active-lb", before: "tw-before-lb",
-          ticks: "tw-ticks-lb", summary: "tw-summary-lb" },
+          ticks: "tw-ticks-lb", summary: "tw-summary-lb", lite: true },
     ex: { range_min: "tw-range-min-ex", range_max: "tw-range-max-ex",
           input_min: "tw-input-min-ex", input_max: "tw-input-max-ex",
           active: "tw-active-ex", before: "tw-before-ex",
           ticks: "tw-ticks-ex", summary: "tw-summary-ex" },
   };
 
-  /** Count tasks in the current time window */
-  function countTasksInWindow() {
+  /** Count tasks in the current time window (Lite only when liteOnly) */
+  function countTasksInWindow(liteOnly) {
     if (!state.index) return 0;
     let count = 0;
     for (const r of state.index.repos) {
       for (const rp of r.rev_pairs) {
+        if (liteOnly && !rp.l) continue;
         if (inWindow(rp.d)) count++;
       }
     }
@@ -225,10 +226,11 @@
 
     // Summary text
     if (summary) {
-      const taskCount = countTasksInWindow();
+      const lite = ids.lite || state.liteOnly;
+      const taskCount = countTasksInWindow(lite);
       const startDisp = monthDisplay(state.months[state.minIdx]);
       const endDisp = monthDisplay(state.months[state.maxIdx]);
-      summary.innerHTML = `<strong>${fmtNum(taskCount)} tasks</strong> selected in the current time window (<strong>${startDisp}</strong> to <strong>${endDisp}</strong>). Adjust the start or end date to change the window.`;
+      summary.innerHTML = `<strong>${fmtNum(taskCount)} ${lite ? "Lite " : ""}tasks</strong> with a commit between <strong>${startDisp}</strong> and <strong>${endDisp}</strong>.${ids.lite ? " Move the start date past a model's training cutoff to score it only on newer commits." : ""}`;
     }
   }
 
@@ -355,9 +357,9 @@
 
   function wireTimeSliders() {
     const maxVal = state.months.length - 1;
-    const defaultMinIdx = findMonthIndex(DEFAULT_MIN_MONTH);
 
-    state.minIdx = defaultMinIdx;
+    // Default to the whole range, so the leaderboard matches the paper.
+    state.minIdx = 0;
     state.maxIdx = maxVal;
 
     // Set initial range values
@@ -400,19 +402,20 @@
         return null;
       }
     }
-    let tuTasks = 0, tuChanges = 0, tgTasks = 0, tgChanges = 0;
+    const n = { tu: 0, tg: 0, tr: 0 };
     let minD = null, maxD = null;
     for (const rp of row.rev_pairs) {
       if (!inWindow(rp.d)) continue;
+      if (state.liteOnly && !rp.l) continue;
       const track = SHORT_TRACK[rp.t];
       if (!state.tracks.has(track)) continue;
-      if (track === "test_update")     { tuTasks++; tuChanges += rp.n; }
-      if (track === "test_generation") { tgTasks++; tgChanges += rp.n; }
+      n[TRACK_TAG[track]]++;
       if (!minD || rp.d < minD) minD = rp.d;
       if (!maxD || rp.d > maxD) maxD = rp.d;
     }
-    if (tuTasks + tgTasks === 0) return null;
-    return { row, tuTasks, tuChanges, tgTasks, tgChanges, dateRange: [minD, maxD] };
+    const total = n.tu + n.tg + n.tr;
+    if (total === 0) return null;
+    return { row, ...n, total, dateRange: [minD, maxD] };
   }
 
   function renderTable() {
@@ -426,22 +429,18 @@
       if (f) rows.push(f);
     }
     // Sort by chosen column + direction
-    const getVal = (f) => {
-      if (state.sortKey === "tu") return f.tuTasks;
-      if (state.sortKey === "tg") return f.tgTasks;
-      return f.tuTasks + f.tgTasks;
-    };
+    const getVal = (f) => (state.sortKey in TRACK_SHORT_KEYS ? f[state.sortKey] : f.total);
     const dir = state.sortDir === "asc" ? 1 : -1;
     rows.sort((a, b) => (getVal(a) - getVal(b)) * dir);
 
     if (rows.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="6" class="empty">No repositories match the current filters.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="7" class="empty">No repositories match the current filters.</td></tr>`;
       return;
     }
 
     for (const f of rows) {
       const r = f.row;
-      const total = f.tuTasks + f.tgTasks;
+      const cell = (v) => v ? fmtNum(v) : '<span class="metric-pending">—</span>';
       const tr = document.createElement("tr");
       tr.className = "repo-row";
       tr.dataset.project = r.project_name;
@@ -451,9 +450,10 @@
           <div class="repo-name">${escapeHtml(r.display_name || r.project_name)}</div>
           <div class="repo-sub">${escapeHtml(r.project_name)}</div>
         </td>
-        <td class="col-num">${fmtNum(total)}</td>
-        <td class="col-num">${f.tuTasks ? fmtNum(f.tuTasks) : '<span class="metric-pending">—</span>'}</td>
-        <td class="col-num">${f.tgTasks ? fmtNum(f.tgTasks) : '<span class="metric-pending">—</span>'}</td>
+        <td class="col-num">${fmtNum(f.total)}</td>
+        <td class="col-num">${cell(f.tu)}</td>
+        <td class="col-num">${cell(f.tg)}</td>
+        <td class="col-num">${cell(f.tr)}</td>
         <td class="col-dates">${fmtDateRange(f.dateRange)}</td>
       `;
       tr.addEventListener("click", () => toggleRepoRow(tr, r));
@@ -473,7 +473,7 @@
     expanded.className = "rev-pair-row";
     expanded.dataset.for = repo.project_name;
     const td = document.createElement("td");
-    td.colSpan = 6;
+    td.colSpan = 7;
     td.innerHTML = `<div class="loading">Loading rev pairs…</div>`;
     expanded.appendChild(td);
     tr.parentNode.insertBefore(expanded, tr.nextSibling);
@@ -492,6 +492,7 @@
       if (!state.tracks.has(track)) continue;
       for (const rp of detail.tracks[track] || []) {
         if (!inWindow(rp.rev2_date)) continue;
+        if (state.liteOnly && !rp.lite) continue;
         rows.push({ track, rp });
       }
     }
@@ -516,7 +517,7 @@
         <tbody>
     `;
     for (const { track, rp } of rows) {
-      const tagCls = track === "test_update" ? "tu" : "tg";
+      const tagCls = TRACK_TAG[track];
       // Show rev1...rev2 (short SHAs) as a link to the git diff URL
       const shortRev1 = rp.rev1 ? rp.rev1.slice(0, 7) : "—";
       const shortRev2 = rp.rev2 ? rp.rev2.slice(0, 7) : "—";
@@ -544,7 +545,7 @@
       }).join("") || '<div class="m metric-pending">—</div>';
       html += `
         <tr>
-          <td><span class="track-tag ${tagCls}">${track.replace("test_", "")}</span></td>
+          <td><span class="track-tag ${tagCls}">${track.replace("test_", "")}</span>${rp.lite ? '<span class="lite-tag" title="In the Lite subset">Lite</span>' : ""}</td>
           <td class="rev-commit-cell">${commitHtml}</td>
           <td class="dep-methods-cell"><div class="dep-methods">${depsHtml}</div></td>
           <td class="test-methods-cell"><div class="test-methods">${methodsHtml}</div></td>
@@ -624,6 +625,13 @@
         document.querySelectorAll("tr.repo-row.open").forEach(r => r.classList.remove("open"));
       });
     }
+    const lite = $("toggle-lite");
+    lite.addEventListener("change", () => {
+      state.liteOnly = lite.checked;
+      syncAll();
+      document.querySelectorAll("tr.rev-pair-row").forEach(r => r.remove());
+      document.querySelectorAll("tr.repo-row.open").forEach(r => r.classList.remove("open"));
+    });
     const search = $("repo-search");
     search.addEventListener("input", () => {
       state.search = search.value.trim();
@@ -647,7 +655,8 @@
   /* ---------- public state ---------- */
 
   window.TestEvoBench = window.TestEvoBench || {};
-  window.TestEvoBench.getState = () => ({
+  // null until the month axis exists (leaderboard.js may ask first)
+  window.TestEvoBench.getState = () => state.months.length === 0 ? null : ({
     minDay: monthToFirstDay(state.months[state.minIdx]),
     maxDay: monthToLastDay(state.months[state.maxIdx]),
     months: state.months,
@@ -672,7 +681,7 @@
     } catch (err) {
       console.error(err);
       $("explorer-tbody").innerHTML =
-        `<tr><td colspan="5" class="empty">Failed to load dataset: ${escapeHtml(err.message)}</td></tr>`;
+        `<tr><td colspan="7" class="empty">Failed to load dataset: ${escapeHtml(err.message)}</td></tr>`;
     }
   }
 

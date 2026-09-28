@@ -627,7 +627,7 @@ section + section { border-top: none; }
 =========================================================== */
 .stat-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(5, 1fr);
   gap: 16px;
 }
 .stat {
@@ -900,6 +900,20 @@ tr.repo-row.open .caret { transform: rotate(45deg); }
 }
 .track-tag.tu { background: #eef3fa; color: #1f4e79; border-color: #c9d9ee; }
 .track-tag.tg { background: #f2f7ee; color: #2e6b2c; border-color: #cadfc3; }
+.track-tag.tr { background: #f6f0f9; color: #6a3d85; border-color: #e0cfea; }
+.lite-tag {
+  display: inline-block;
+  margin-left: 4px;
+  font-family: var(--sans);
+  font-size: 0.6rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: var(--bg-alt);
+  color: var(--ink-soft);
+  border: 1px solid var(--border-strong);
+}
 
 .dep-methods {
   display: flex;
@@ -1063,3 +1077,59 @@ tr.repo-row.open .caret { transform: rotate(45deg); }
   .explorer-table .col-num { width: 65px; }
   .tw-tick-label { font-size: 0.55rem; }
 }
+
+/* ===========================================================
+   THREE-TRACK SUMMARY + TABLE SCROLL (2026-09-28)
+=========================================================== */
+.track-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin: 18px 0 20px;
+}
+.track-card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 14px;
+}
+.track-card p { margin: 8px 0 0; font-size: 0.92rem; line-height: 1.5; color: var(--ink-soft); }
+.track-card.tu { border-top: 3px solid #c9d9ee; }
+.track-card.tg { border-top: 3px solid #cadfc3; }
+.track-card.tr { border-top: 3px solid #e0cfea; }
+
+/* Wide tables scroll inside their box instead of widening the page. */
+.table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.table-scroll > table { min-width: 640px; }
+
+@media (max-width: 1000px) {
+  .stat-grid { grid-template-columns: repeat(3, 1fr); }
+}
+@media (max-width: 760px) {
+  .track-cards { grid-template-columns: 1fr; }
+  .stat-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 480px) {
+  .stat-grid { grid-template-columns: 1fr; }
+}
+
+/* Show the finished example diffs without animation for reduced-motion users. */
+@media (prefers-reduced-motion: reduce) {
+  .hero-figure .ln, .hero-figure .multi { animation: none !important; }
+  .hero-figure .prod-old, .hero-figure .test-old, .hero-figure .prod-upd-old {
+    background: var(--del-bg); color: var(--del-fg); text-decoration: line-through;
+  }
+  .hero-figure .prod-new, .hero-figure .test-new, .hero-figure .prod-ins,
+  .hero-figure .prod-upd-new { background: var(--add-bg); }
+  .hero-figure .test-ins { background: var(--add-bg-soft); }
+}
+.leaderboard-table td, .leaderboard-table th { white-space: nowrap; }
+.lb-tabs { flex-wrap: wrap; }
+@media (max-width: 760px) {
+  /* In the stacked layout the slider needs an explicit width (flex:1 gives it none). */
+  .tw-slider-row { align-items: stretch; }
+  .tw-track-wrap { flex: none; width: 100%; }
+  .lb-tab { padding: 8px 12px; font-size: 0.85rem; }
+}
+.explorer-table th.col-num, .explorer-table td.col-num { width: 104px; }
+@media (max-width: 760px) { .explorer-table th.col-num, .explorer-table td.col-num { width: 64px; } }
