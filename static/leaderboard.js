@@ -14,11 +14,13 @@
     ["CovOnPass", "Line coverage of the production methods that the developer's test executes, averaged over the targets of each solved task and then over the tasks the configuration solves."],
     ["MutOnPass", "Share of Universal Mutator mutants of the changed methods (up to ten per method) that the test kills, averaged like CovOnPass over the tasks the configuration solves."],
     ["Overall", "Per-task score: (1 + CovOnPass + MutOnPass) / 3 for a fully successful task, otherwise its graded progress (0 no compile, 1/3 compiles but fails, 2/3 passes but misses the criterion)."],
+    ["#", "Rank by Overall, then Success. Click a column header to reorder the rows; the rank stays the Overall rank."],
     ["Tasks", "Lite tasks in the selected window for this track. Each run is limited to 1 hour and US$3 per task; mini-SWE-agent runs also stop after 250 steps."],
     ["Developer tests", "The developer's own tests from the commit, scored the same way. They meet the track criterion on every Lite task, so their Success is 100%. Shown for reference and not ranked."],
   ];
 
-  const state = { data: null, currentTrack: "all" };
+  const state = { data: null, currentTrack: "all", sortKey: "o", sortDir: "desc" };
+  const TEXT_KEYS = new Set(["agent", "model"]);
 
   function $(id) { return document.getElementById(id); }
 
@@ -79,9 +81,13 @@
     const rows = all.filter(r => !r.e.reference);
     const refs = all.filter(r => r.e.reference);
 
-    // Rank by Overall, then Success; empty rows last.
+    // Rank by Overall, then Success; empty rows last. The rank stays fixed when the
+    // rows are re-sorted by another column.
     const key = (r) => [r.m.o ?? -1, r.m.s ?? -1];
     rows.sort((a, b) => key(b)[0] - key(a)[0] || key(b)[1] - key(a)[1]);
+    rows.forEach((r, i) => { r.rank = r.m.n ? i + 1 : null; });
+    sortRows(rows);
+    renderSortHeaders();
 
     const round1 = (v) => v == null ? null : Math.round(v * 10) / 10;
     const best = {};
@@ -95,12 +101,12 @@
     };
 
     tbody.innerHTML = "";
-    [...rows, ...refs].forEach(({ e, m }, i) => {
+    [...rows, ...refs].forEach(({ e, m, rank }) => {
       const ref = !!e.reference;
       const tr = document.createElement("tr");
       if (ref) tr.className = "lb-reference";
       tr.innerHTML = `
-        <td>${ref || !m.n ? "—" : i + 1}</td>
+        <td>${ref || rank == null ? "—" : rank}</td>
         <td>${escapeHtml(e.agent)}</td>
         <td>${escapeHtml(e.model)}</td>
         <td>${cell(m, "s", ref)}</td>
@@ -122,6 +128,43 @@
         (track === "update" ? "TestUpdater and ReAccept were run on the update track only." : "");
       note.style.display = "";
     }
+  }
+
+  // Re-order rows by the selected column. Missing values go last in either direction;
+  // ties fall back to the Overall rank.
+  function sortRows(rows) {
+    const k = state.sortKey, dir = state.sortDir === "asc" ? 1 : -1;
+    const val = (r) => TEXT_KEYS.has(k) ? r.e[k] : (k === "n" ? r.m.n : r.m[k]);
+    rows.sort((a, b) => {
+      const va = val(a), vb = val(b);
+      if (va == null || vb == null) return (va == null) - (vb == null) || (a.rank ?? 1e9) - (b.rank ?? 1e9);
+      const c = TEXT_KEYS.has(k) ? va.localeCompare(vb) : va - vb;
+      return c * dir || (a.rank ?? 1e9) - (b.rank ?? 1e9);
+    });
+  }
+
+  function renderSortHeaders() {
+    document.querySelectorAll("#leaderboard-table thead th.sortable").forEach(th => {
+      const active = th.dataset.sort === state.sortKey;
+      th.classList.toggle("sort-active", active);
+      th.setAttribute("aria-sort", active ? (state.sortDir === "asc" ? "ascending" : "descending") : "none");
+      th.querySelector(".sort-arrow").textContent = active ? (state.sortDir === "asc" ? "↑" : "↓") : "";
+    });
+  }
+
+  function wireSort() {
+    document.querySelectorAll("#leaderboard-table thead th.sortable").forEach(th => {
+      const activate = () => {
+        const k = th.dataset.sort;
+        if (state.sortKey === k) state.sortDir = state.sortDir === "asc" ? "desc" : "asc";
+        else { state.sortKey = k; state.sortDir = TEXT_KEYS.has(k) ? "asc" : "desc"; }
+        renderTable();
+      };
+      th.addEventListener("click", activate);
+      th.addEventListener("keydown", (ev) => {
+        if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); activate(); }
+      });
+    });
   }
 
   function renderMetricDefs() {
@@ -161,6 +204,7 @@
       if (!res.ok) throw new Error(`Failed to load ${DATA_LB}: ${res.status}`);
       state.data = await res.json();
       wireTabs();
+      wireSort();
       renderTable();
     } catch (err) {
       console.error(err);

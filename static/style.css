@@ -806,16 +806,19 @@ section + section { border-top: none; }
   background: #F7F5EF;
 }
 .explorer-table thead th.sortable,
+.leaderboard-table thead th.sortable,
 .rev-table th.sortable {
   cursor: pointer;
   user-select: none;
   transition: color 120ms;
 }
 .explorer-table thead th.sortable:hover,
+.leaderboard-table thead th.sortable:hover,
 .rev-table th.sortable:hover {
   color: var(--ink);
 }
 .explorer-table thead th.sortable.sort-active,
+.leaderboard-table thead th.sortable.sort-active,
 .rev-table th.sortable.sort-active {
   color: var(--ink);
 }

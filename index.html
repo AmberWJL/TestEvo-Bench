@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>TestEvo-Bench — an executable, live benchmark for test and code co-evolution</title>
   <meta name="description" content="TestEvo-Bench is an executable, live benchmark of test and code co-evolution mined from open-source Java projects: 3,020 tasks across test generation, test update and test refinement, scored by execution, coverage and mutation, with time filtering for contamination-aware evaluation.">
-  <link rel="stylesheet" href="static/style.css?v=202610020028">
+  <link rel="stylesheet" href="static/style.css?v=202610021528">
 </head>
 <body>
 
@@ -300,13 +300,13 @@
       <thead>
         <tr>
           <th>#</th>
-          <th>Agent</th>
-          <th>Model</th>
-          <th>Success</th>
-          <th>CovOnPass</th>
-          <th>MutOnPass</th>
-          <th>Overall</th>
-          <th>Tasks</th>
+          <th class="sortable" data-sort="agent" tabindex="0">Agent<span class="sort-arrow"></span></th>
+          <th class="sortable" data-sort="model" tabindex="0">Model<span class="sort-arrow"></span></th>
+          <th class="sortable" data-sort="s" tabindex="0">Success<span class="sort-arrow"></span></th>
+          <th class="sortable" data-sort="c" tabindex="0">CovOnPass<span class="sort-arrow"></span></th>
+          <th class="sortable" data-sort="m" tabindex="0">MutOnPass<span class="sort-arrow"></span></th>
+          <th class="sortable" data-sort="o" tabindex="0">Overall<span class="sort-arrow"></span></th>
+          <th class="sortable" data-sort="n" tabindex="0">Tasks<span class="sort-arrow"></span></th>
         </tr>
       </thead>
       <tbody id="leaderboard-tbody">
@@ -439,7 +439,7 @@
   });
 })();
 </script>
-<script src="static/explorer.js?v=202610020028"></script>
-<script src="static/leaderboard.js?v=202610020028"></script>
+<script src="static/explorer.js?v=202610021528"></script>
+<script src="static/leaderboard.js?v=202610021528"></script>
 </body>
 </html>
