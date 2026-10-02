@@ -14,13 +14,14 @@
     ["CovOnPass", "Line coverage of the production methods that the developer's test executes, averaged over the targets of each solved task and then over the tasks the configuration solves."],
     ["MutOnPass", "Share of Universal Mutator mutants of the changed methods (up to ten per method) that the test kills, averaged like CovOnPass over the tasks the configuration solves."],
     ["Overall", "Per-task score: (1 + CovOnPass + MutOnPass) / 3 for a fully successful task, otherwise its graded progress (0 no compile, 1/3 compiles but fails, 2/3 passes but misses the criterion)."],
-    ["#", "Rank by Overall, then Success. Click a column header to reorder the rows; the rank stays the Overall rank."],
+    ["#", "Rank by Overall, then Success. Every column header sorts the rows (click again to reverse); the rank stays the Overall rank."],
     ["Tasks", "Lite tasks in the selected window for this track. Each run is limited to 1 hour and US$3 per task; mini-SWE-agent runs also stop after 250 steps."],
     ["Developer tests", "The developer's own tests from the commit, scored the same way. They meet the track criterion on every Lite task, so their Success is 100%. Shown for reference and not ranked."],
   ];
 
   const state = { data: null, currentTrack: "all", sortKey: "o", sortDir: "desc" };
   const TEXT_KEYS = new Set(["agent", "model"]);
+  const ASC_FIRST = new Set(["agent", "model", "rank"]); // first click sorts ascending
 
   function $(id) { return document.getElementById(id); }
 
@@ -134,7 +135,7 @@
   // ties fall back to the Overall rank.
   function sortRows(rows) {
     const k = state.sortKey, dir = state.sortDir === "asc" ? 1 : -1;
-    const val = (r) => TEXT_KEYS.has(k) ? r.e[k] : (k === "n" ? r.m.n : r.m[k]);
+    const val = (r) => TEXT_KEYS.has(k) ? r.e[k] : k === "rank" ? r.rank : k === "n" ? r.m.n : r.m[k];
     rows.sort((a, b) => {
       const va = val(a), vb = val(b);
       if (va == null || vb == null) return (va == null) - (vb == null) || (a.rank ?? 1e9) - (b.rank ?? 1e9);
@@ -157,7 +158,7 @@
       const activate = () => {
         const k = th.dataset.sort;
         if (state.sortKey === k) state.sortDir = state.sortDir === "asc" ? "desc" : "asc";
-        else { state.sortKey = k; state.sortDir = TEXT_KEYS.has(k) ? "asc" : "desc"; }
+        else { state.sortKey = k; state.sortDir = ASC_FIRST.has(k) ? "asc" : "desc"; }
         renderTable();
       };
       th.addEventListener("click", activate);

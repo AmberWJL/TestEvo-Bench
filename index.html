@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>TestEvo-Bench — an executable, live benchmark for test and code co-evolution</title>
   <meta name="description" content="TestEvo-Bench is an executable, live benchmark of test and code co-evolution mined from open-source Java projects: 3,020 tasks across test generation, test update and test refinement, scored by execution, coverage and mutation, with time filtering for contamination-aware evaluation.">
-  <link rel="stylesheet" href="static/style.css?v=202610021528">
+  <link rel="stylesheet" href="static/style.css?v=202610021555">
 </head>
 <body>
 
@@ -52,14 +52,6 @@
       developer's own test, and every task records its commit date, so results can be
       restricted to commits made after a model's training cutoff.
     </p>
-    <div class="track-cards">
-      <div class="track-card tg"><span class="track-tag tg">generation</span>
-        <p>A code change adds or changes behaviour. Write a new test that passes on the new code and fails on the old code.</p></div>
-      <div class="track-card tu"><span class="track-tag tu">update</span>
-        <p>A code change breaks an existing test. Update it so it passes on the new code and fails on the old code.</p></div>
-      <div class="track-card tr"><span class="track-tag tr">refinement</span>
-        <p>A test already passes. Improve it so it covers more of the changed code.</p></div>
-    </div>
     <p>
       The current snapshot has <strong>3,020 tasks</strong> from 196 repositories with commits
       from January 2019 to June 2026, and a <strong>584-task Lite subset</strong> for
@@ -71,13 +63,36 @@
       this overall score, which also counts coverage and mutation.
     </p>
 
-    <div class="hero-figure embedded">
-    <div class="track-block t2">
-      <div class="track-heading">
-        <h2>Example — test generation</h2>
-        <span class="desc"><code>UrlTemplate.put(Map)</code> called <code>putAll</code> on its own argument, so the parameters were silently dropped. The fix passes each entry to <code>put(String, String)</code>, and the developer adds a test that checks the rendered URL contains them. <em>Task from <code>FluentLenium/FluentLenium</code>, January 2019 (<a href="https://github.com/FluentLenium/FluentLenium/compare/a3fefa6b955c1c2e7a28d66e7e22efe01527d616...372393d3f4f62f1e3d25b20a67906e00845c4eea" target="_blank" rel="noopener">diff</a>).</em></span>
-      </div>
-      <div class="stage">
+    <h3 class="tracks-h">Three tracks <span>— pick one to see a real task from the benchmark</span></h3>
+    <div class="track-tabs" role="tablist" aria-label="Benchmark tracks">
+      <button class="track-tab tg active" type="button" role="tab" id="tab-gen" data-key="gen"
+              aria-selected="true" aria-controls="pane-gen" tabindex="0">
+        <span class="tt-top"><span class="track-tag tg">generation</span><span class="tt-num">1/3</span></span>
+        <span class="tt-title">Write a new test</span>
+        <span class="tt-task">A code change adds or changes behaviour. Write a new test that passes on the new code and fails on the old code.</span>
+        <span class="tt-meta" data-track-meta="test_generation"><b>2,163</b> tasks · <b>300</b> in Lite</span>
+      </button>
+      <button class="track-tab tu" type="button" role="tab" id="tab-upd" data-key="upd"
+              aria-selected="false" aria-controls="pane-upd" tabindex="-1">
+        <span class="tt-top"><span class="track-tag tu">update</span><span class="tt-num">2/3</span></span>
+        <span class="tt-title">Fix a broken test</span>
+        <span class="tt-task">A code change breaks an existing test. Update it so it passes on the new code and fails on the old code.</span>
+        <span class="tt-meta" data-track-meta="test_update"><b>641</b> tasks · <b>200</b> in Lite</span>
+      </button>
+      <button class="track-tab tr" type="button" role="tab" id="tab-ref" data-key="ref"
+              aria-selected="false" aria-controls="pane-ref" tabindex="-1">
+        <span class="tt-top"><span class="track-tag tr">refinement</span><span class="tt-num">3/3</span></span>
+        <span class="tt-title">Strengthen a passing test</span>
+        <span class="tt-task">A test already passes. Improve it so it covers more of the changed code.</span>
+        <span class="tt-meta" data-track-meta="test_refinement"><b>216</b> tasks · <b>84</b> in Lite</span>
+      </button>
+    </div>
+    <div class="track-panes hero-figure embedded">
+      <div class="track-pane tg active" id="pane-gen" role="tabpanel" aria-labelledby="tab-gen" data-key="gen">
+        <div class="track-block t2">
+          <p class="tp-task">A code change adds or changes behaviour. Write a new test that passes on the new code and fails on the old code.</p>
+          <p class="tp-desc"><span class="tp-ex">Example</span> <code>UrlTemplate.put(Map)</code> called <code>putAll</code> on its own argument, so the parameters were silently dropped. The fix passes each entry to <code>put(String, String)</code>, and the developer adds a test that checks the rendered URL contains them. <em>Task from <code>FluentLenium/FluentLenium</code>, January 2019 (<a href="https://github.com/FluentLenium/FluentLenium/compare/a3fefa6b955c1c2e7a28d66e7e22efe01527d616...372393d3f4f62f1e3d25b20a67906e00845c4eea" target="_blank" rel="noopener">diff</a>).</em></p>
+          <div class="stage">
 
         <div class="panel">
           <span class="track-badge">production</span>
@@ -121,14 +136,13 @@
           </div>
         </div>
       </div>
-    </div>
-
-    <div class="track-block t1">
-      <div class="track-heading">
-        <h2>Example — test update</h2>
-        <span class="desc"><code>ExclusionChecker.check</code> now sorts the invalid exclusions it reports, so the existing test fails on the new code, and the developer reorders its expected list. <em>Task from <code>apache/maven-dependency-plugin</code>, April 2024 (<a href="https://github.com/apache/maven-dependency-plugin/compare/27458d9dca1473cabaca00e0060cd258813cfc0a...61d1162a64577549a8af5e43591fe5782c8fbd31" target="_blank" rel="noopener">diff</a>).</em></span>
+        </div>
       </div>
-      <div class="stage">
+      <div class="track-pane tu" id="pane-upd" role="tabpanel" aria-labelledby="tab-upd" data-key="upd" hidden>
+        <div class="track-block t1">
+          <p class="tp-task">A code change breaks an existing test. Update it so it passes on the new code and fails on the old code.</p>
+          <p class="tp-desc"><span class="tp-ex">Example</span> <code>ExclusionChecker.check</code> now sorts the invalid exclusions it reports, so the existing test fails on the new code, and the developer reorders its expected list. <em>Task from <code>apache/maven-dependency-plugin</code>, April 2024 (<a href="https://github.com/apache/maven-dependency-plugin/compare/27458d9dca1473cabaca00e0060cd258813cfc0a...61d1162a64577549a8af5e43591fe5782c8fbd31" target="_blank" rel="noopener">diff</a>).</em></p>
+          <div class="stage">
 
         <div class="panel">
           <span class="track-badge">production</span>
@@ -180,14 +194,13 @@
           </div>
         </div>
       </div>
-    </div>
-
-    <div class="track-block t3">
-      <div class="track-heading">
-        <h2>Example — test refinement</h2>
-        <span class="desc"><code>AccountBuilder.addEmail</code> now accepts addresses that already carry the <code>mailto:</code> prefix. The old test still passes on the new code but never reaches the new branch; the developer adds a prefixed address, so the test covers all 4 lines of the changed method instead of 3. <em>Task from <code>shred/acme4j</code>, April 2023 (<a href="https://github.com/shred/acme4j/compare/09a72d606b56fe44f23fe53303675c4b9d3a7b45...01a2206c62db61ab808577cbb4d95eded9572dd0" target="_blank" rel="noopener">diff</a>).</em></span>
+        </div>
       </div>
-      <div class="stage">
+      <div class="track-pane tr" id="pane-ref" role="tabpanel" aria-labelledby="tab-ref" data-key="ref" hidden>
+        <div class="track-block t3">
+          <p class="tp-task">A test already passes. Improve it so it covers more of the changed code.</p>
+          <p class="tp-desc"><span class="tp-ex">Example</span> <code>AccountBuilder.addEmail</code> now accepts addresses that already carry the <code>mailto:</code> prefix. The old test still passes on the new code but never reaches the new branch; the developer adds a prefixed address, so the test covers all 4 lines of the changed method instead of 3. <em>Task from <code>shred/acme4j</code>, April 2023 (<a href="https://github.com/shred/acme4j/compare/09a72d606b56fe44f23fe53303675c4b9d3a7b45...01a2206c62db61ab808577cbb4d95eded9572dd0" target="_blank" rel="noopener">diff</a>).</em></p>
+          <div class="stage">
 
         <div class="panel">
           <span class="track-badge">production</span>
@@ -237,7 +250,8 @@
           </div>
         </div>
       </div>
-    </div>
+        </div>
+      </div>
     </div>
   </section>
 
@@ -299,7 +313,7 @@
     <table class="leaderboard-table" id="leaderboard-table">
       <thead>
         <tr>
-          <th>#</th>
+          <th class="sortable" data-sort="rank" tabindex="0">#<span class="sort-arrow"></span></th>
           <th class="sortable" data-sort="agent" tabindex="0">Agent<span class="sort-arrow"></span></th>
           <th class="sortable" data-sort="model" tabindex="0">Model<span class="sort-arrow"></span></th>
           <th class="sortable" data-sort="s" tabindex="0">Success<span class="sort-arrow"></span></th>
@@ -439,7 +453,8 @@
   });
 })();
 </script>
-<script src="static/explorer.js?v=202610021528"></script>
-<script src="static/leaderboard.js?v=202610021528"></script>
+<script src="static/explorer.js?v=202610021555"></script>
+<script src="static/tracks.js?v=202610021555"></script>
+<script src="static/leaderboard.js?v=202610021555"></script>
 </body>
 </html>

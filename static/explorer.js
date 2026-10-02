@@ -130,6 +130,12 @@
       { label: "Target tests", value: fmtNum(sum("changes")), sub: "test methods an agent must write or edit" },
       { label: "Commit dates", value: `${minDate.slice(0, 7)} → ${maxDate.slice(0, 7)}`, sub: fmtDuration(minDate, maxDate) },
     ];
+    // Track tabs on the Overview show each track's Full and Lite task counts.
+    for (const [track, s] of Object.entries(idx.stats)) {
+      const el = document.querySelector(`[data-track-meta="${track}"]`);
+      if (el) el.innerHTML = `<b>${fmtNum(s.tasks)}</b> tasks · <b>${fmtNum(s.lite_tasks)}</b> in Lite`;
+    }
+
     for (const t of tiles) {
       const d = document.createElement("div");
       d.className = "stat";
