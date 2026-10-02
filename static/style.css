@@ -1055,8 +1055,6 @@ tr.repo-row.open .caret { transform: rotate(45deg); }
   border-top: 1px solid var(--border-strong);
 }
 .leaderboard-table tbody tr.lb-reference td:nth-child(2) { font-style: italic; }
-.lb-note-mark { color: var(--muted); margin-left: 2px; }
-.lb-footnotes { font-size: 0.82rem; color: var(--muted); margin: 10px 0 0; }
 
 .metric-defs { margin-top: 16px; font-size: 0.9rem; color: var(--ink-soft); }
 .metric-defs summary { cursor: pointer; color: var(--muted); font-family: var(--sans); }

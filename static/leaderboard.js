@@ -95,22 +95,14 @@
     };
 
     tbody.innerHTML = "";
-    const notes = [];
-    const maxN = Math.max(0, ...all.map(r => r.m.n));
     [...rows, ...refs].forEach(({ e, m }, i) => {
       const ref = !!e.reference;
-      let mark = "";
-      // A note explains a short task count, so show it only where the entry has fewer tasks.
-      if (e.note && m.n && m.n < maxN) {
-        notes.push(e.note);
-        mark = `<sup class="lb-note-mark">${notes.length}</sup>`;
-      }
       const tr = document.createElement("tr");
       if (ref) tr.className = "lb-reference";
       tr.innerHTML = `
         <td>${ref || !m.n ? "—" : i + 1}</td>
         <td>${escapeHtml(e.agent)}</td>
-        <td>${escapeHtml(e.model)}${mark}</td>
+        <td>${escapeHtml(e.model)}</td>
         <td>${cell(m, "s", ref)}</td>
         <td>${cell(m, "c", ref)}</td>
         <td>${cell(m, "m", ref)}</td>
@@ -120,21 +112,15 @@
     });
     if (rows.length === 0 || rows.every(r => r.m.n === 0)) {
       tbody.innerHTML = `<tr><td colspan="8" class="empty">No Lite tasks in the selected window.</td></tr>`;
-      notes.length = 0;
     }
 
     const note = $("lb-window-note");
     if (note) {
-      const n = maxN;
+      const n = Math.max(0, ...all.map(r => r.m.n));
       const scope = track === "all" ? "all three tracks" : `the ${track} track`;
       note.textContent = `${n.toLocaleString()} Lite tasks on ${scope} in the selected window. ` +
         (track === "update" ? "TestUpdater and ReAccept were run on the update track only." : "");
       note.style.display = "";
-    }
-    const foot = $("lb-footnotes");
-    if (foot) {
-      foot.innerHTML = notes.map((t, i) => `<sup>${i + 1}</sup> ${escapeHtml(t)}`).join("<br>");
-      foot.style.display = notes.length ? "" : "none";
     }
   }
 
