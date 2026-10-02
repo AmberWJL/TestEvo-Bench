@@ -14,8 +14,6 @@
     ["CovOnPass", "Line coverage of the production methods that the developer's test executes, averaged over the targets of each solved task and then over the tasks the configuration solves."],
     ["MutOnPass", "Share of Universal Mutator mutants of the changed methods (up to ten per method) that the test kills, averaged like CovOnPass over the tasks the configuration solves."],
     ["Overall", "Per-task score: (1 + CovOnPass + MutOnPass) / 3 for a fully successful task, otherwise its graded progress (0 no compile, 1/3 compiles but fails, 2/3 passes but misses the criterion)."],
-    ["CovOverlapped", "Share of the lines the developer's test covers that the agent's test also covers, averaged per target, then within each solved task, then over the solved tasks. Targets whose developer test covers nothing are skipped."],
-    ["MutOverlapped", "Share of the mutants the developer's test kills that the agent's test also kills, averaged like CovOverlapped. Targets whose developer test kills no mutant are skipped. Not available for TestUpdater and ReAccept."],
     ["Tasks", "Lite tasks in the selected window for this track. Each run is limited to 1 hour and US$3 per task; mini-SWE-agent runs also stop after 250 steps."],
     ["Developer tests", "The developer's own tests from the commit, scored the same way. They meet the track criterion on every Lite task, so their Success is 100%. Shown for reference and not ranked."],
   ];
@@ -35,9 +33,8 @@
      Each task in entry.tasks has:
        d – rev2 date "YYYY-MM-DD", t – track (u / g / r)
        s – binary success (0/1), c – CovOnPass, m – MutOnPass,
-       o – Overall, co / mo – Cov / Mut overlap with the developer's test
-       (c, m, o, co, mo are null when undefined for the task;
-       c, m, co, mo are also null for tasks the configuration does not solve)
+       o – Overall (c, m, o are null when undefined for the task;
+       c and m are also null for tasks the configuration does not solve)
      Success averages over every task; the others over tasks that
      have a value, exactly as the paper's Table 3.
      An entry with reference: true (developer tests) is listed last,
@@ -56,15 +53,14 @@
 
   function computeMetrics(tasks, win, track) {
     const want = TRACK_SHORT[track];
-    const acc = { s: [], c: [], m: [], o: [], co: [], mo: [] };
+    const acc = { s: [], c: [], m: [], o: [] };
     for (const t of tasks) {
       if (want && t.t !== want) continue;
       if (!inWindow(t.d, win)) continue;
       for (const k of Object.keys(acc)) if (t[k] != null) acc[k].push(t[k]);
     }
     const pct = (xs) => xs.length ? 100 * xs.reduce((a, b) => a + b, 0) / xs.length : null;
-    return { n: acc.s.length, s: pct(acc.s), c: pct(acc.c), m: pct(acc.m), o: pct(acc.o),
-             co: pct(acc.co), mo: pct(acc.mo) };
+    return { n: acc.s.length, s: pct(acc.s), c: pct(acc.c), m: pct(acc.m), o: pct(acc.o) };
   }
 
   function fmtPct(v) {
@@ -89,7 +85,7 @@
 
     const round1 = (v) => v == null ? null : Math.round(v * 10) / 10;
     const best = {};
-    for (const k of ["s", "c", "m", "o", "co", "mo"]) {
+    for (const k of ["s", "c", "m", "o"]) {
       const vals = rows.map(r => round1(r.m[k])).filter(v => v != null);
       best[k] = vals.length ? Math.max(...vals) : null;
     }
@@ -111,13 +107,11 @@
         <td>${cell(m, "c", ref)}</td>
         <td>${cell(m, "m", ref)}</td>
         <td>${cell(m, "o", ref)}</td>
-        <td class="col-overlap">${cell(m, "co", ref)}</td>
-        <td>${cell(m, "mo", ref)}</td>
         <td>${m.n}</td>`;
       tbody.appendChild(tr);
     });
     if (rows.length === 0 || rows.every(r => r.m.n === 0)) {
-      tbody.innerHTML = `<tr><td colspan="10" class="empty">No Lite tasks in the selected window.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="8" class="empty">No Lite tasks in the selected window.</td></tr>`;
     }
 
     const note = $("lb-window-note");
@@ -171,7 +165,7 @@
     } catch (err) {
       console.error(err);
       $("leaderboard-tbody").innerHTML =
-        `<tr><td colspan="10" class="empty">Failed to load leaderboard: ${escapeHtml(err.message)}</td></tr>`;
+        `<tr><td colspan="8" class="empty">Failed to load leaderboard: ${escapeHtml(err.message)}</td></tr>`;
     }
   }
 
