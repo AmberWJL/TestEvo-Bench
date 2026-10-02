@@ -11,10 +11,11 @@
 
   const METRIC_DEFS = [
     ["Success", "Share of tasks in which every target test meets its track criterion: update and generation tests must pass on the new revision and fail on the old one; refinement tests must pass and raise coverage."],
-    ["CovOnPass", "Line coverage of the production methods that the developer's test executes, averaged over targets that pass on the new revision."],
-    ["MutOnPass", "Share of Universal Mutator mutants of the changed methods (up to ten per method) that the test kills, averaged over targets that pass on the new revision."],
+    ["CovOnPass", "Line coverage of the production methods that the developer's test executes, averaged over the targets of each solved task and then over the tasks the configuration solves."],
+    ["MutOnPass", "Share of Universal Mutator mutants of the changed methods (up to ten per method) that the test kills, averaged like CovOnPass over the tasks the configuration solves."],
     ["Overall", "Per-task score: (1 + CovOnPass + MutOnPass) / 3 for a fully successful task, otherwise its graded progress (0 no compile, 1/3 compiles but fails, 2/3 passes but misses the criterion)."],
-    ["Tasks", "Lite tasks in the selected window for this track. Each run is limited to 1 hour, US$3 and 250 steps per task."],
+    ["Tasks", "Lite tasks in the selected window for this track. Each run is limited to 1 hour and US$3 per task; mini-SWE-agent runs also stop after 250 steps."],
+    ["Developer tests", "The developer's own tests from the commit, scored the same way. They meet the track criterion on every Lite task, so their Success is 100%. Shown for reference and not ranked."],
   ];
 
   const state = { data: null, currentTrack: "all" };
@@ -32,9 +33,12 @@
      Each task in entry.tasks has:
        d – rev2 date "YYYY-MM-DD", t – track (u / g / r)
        s – binary success (0/1), c – CovOnPass, m – MutOnPass,
-       o – Overall (c, m, o are null when undefined for the task)
+       o – Overall (c, m, o are null when undefined for the task;
+       c and m are also null for tasks the configuration does not solve)
      Success averages over every task; the others over tasks that
      have a value, exactly as the paper's Table 3.
+     An entry with reference: true (developer tests) is listed last,
+     unranked and never bolded.
   ------------------------------------------------------------------ */
 
   function getWindow() {
@@ -69,9 +73,11 @@
     const track = state.currentTrack;
     const win = getWindow();
 
-    const rows = state.data.entries
+    const all = state.data.entries
       .filter(e => track === "all" ? e.tracks.length === 3 : e.tracks.includes(track))
       .map(e => ({ e, m: computeMetrics(e.tasks, win, track) }));
+    const rows = all.filter(r => !r.e.reference);
+    const refs = all.filter(r => r.e.reference);
 
     // Rank by Overall, then Success; empty rows last.
     const key = (r) => [r.m.o ?? -1, r.m.s ?? -1];
@@ -83,36 +89,52 @@
       const vals = rows.map(r => round1(r.m[k])).filter(v => v != null);
       best[k] = vals.length ? Math.max(...vals) : null;
     }
-    const cell = (m, k) => {
+    const cell = (m, k, ref) => {
       const html = fmtPct(m[k]);
-      return round1(m[k]) != null && round1(m[k]) === best[k] ? `<strong>${html}</strong>` : html;
+      return !ref && round1(m[k]) != null && round1(m[k]) === best[k] ? `<strong>${html}</strong>` : html;
     };
 
     tbody.innerHTML = "";
-    rows.forEach(({ e, m }, i) => {
+    const notes = [];
+    const maxN = Math.max(0, ...all.map(r => r.m.n));
+    [...rows, ...refs].forEach(({ e, m }, i) => {
+      const ref = !!e.reference;
+      let mark = "";
+      // A note explains a short task count, so show it only where the entry has fewer tasks.
+      if (e.note && m.n && m.n < maxN) {
+        notes.push(e.note);
+        mark = `<sup class="lb-note-mark">${notes.length}</sup>`;
+      }
       const tr = document.createElement("tr");
+      if (ref) tr.className = "lb-reference";
       tr.innerHTML = `
-        <td>${m.n ? i + 1 : "—"}</td>
+        <td>${ref || !m.n ? "—" : i + 1}</td>
         <td>${escapeHtml(e.agent)}</td>
-        <td>${escapeHtml(e.model)}</td>
-        <td>${cell(m, "s")}</td>
-        <td>${cell(m, "c")}</td>
-        <td>${cell(m, "m")}</td>
-        <td>${cell(m, "o")}</td>
+        <td>${escapeHtml(e.model)}${mark}</td>
+        <td>${cell(m, "s", ref)}</td>
+        <td>${cell(m, "c", ref)}</td>
+        <td>${cell(m, "m", ref)}</td>
+        <td>${cell(m, "o", ref)}</td>
         <td>${m.n}</td>`;
       tbody.appendChild(tr);
     });
     if (rows.length === 0 || rows.every(r => r.m.n === 0)) {
       tbody.innerHTML = `<tr><td colspan="8" class="empty">No Lite tasks in the selected window.</td></tr>`;
+      notes.length = 0;
     }
 
     const note = $("lb-window-note");
     if (note) {
-      const n = rows.length ? rows[0].m.n : 0;
+      const n = maxN;
       const scope = track === "all" ? "all three tracks" : `the ${track} track`;
       note.textContent = `${n.toLocaleString()} Lite tasks on ${scope} in the selected window. ` +
         (track === "update" ? "TestUpdater and ReAccept were run on the update track only." : "");
       note.style.display = "";
+    }
+    const foot = $("lb-footnotes");
+    if (foot) {
+      foot.innerHTML = notes.map((t, i) => `<sup>${i + 1}</sup> ${escapeHtml(t)}`).join("<br>");
+      foot.style.display = notes.length ? "" : "none";
     }
   }
 

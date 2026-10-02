@@ -440,7 +440,7 @@ section + section { border-top: none; }
 }
 
 /* ===========================================================
-   HERO FIGURE — code animations (two tracks)
+   HERO FIGURE — code animations (three tracks)
 =========================================================== */
 .hero-figure { padding-top: 40px; padding-bottom: 20px; }
 .hero-figure.embedded { padding-top: 32px; padding-bottom: 0; }
@@ -515,7 +515,7 @@ section + section { border-top: none; }
   background: var(--bg);
 }
 
-.code { padding: 0 20px; }
+.code { padding: 0 20px; font-variant-ligatures: none; } /* show -> and :: as typed */
 .ln {
   display: block;
   white-space: pre-wrap;
@@ -540,8 +540,8 @@ section + section { border-top: none; }
 .cmt  { color: #8a8a8a; font-style: italic; }
 .anno { color: #a89b2e; }
 
-.multi { display: block; overflow: hidden; width: fit-content; max-width: 100%; }
-.multi .ln { padding-left: 20px; padding-right: 20px; }
+/* Inserted block: highlighted full width, aligned with the surrounding lines. */
+.multi { display: block; overflow: hidden; }
 
 .arrow {
   width: 54px;
@@ -602,6 +602,53 @@ section + section { border-top: none; }
   0%,  23%  { opacity: 0; background: transparent; }
   33%, 100% { opacity: 1; background: var(--add-bg-soft); }
 }
+
+/* ----- TRACK 3 keyframes (test_refinement) ----- */
+.t3 .prod-upd-old { animation: t3UpdOld     15s infinite; }
+.t3 .prod-upd-new { animation: t3UpdNew     15s infinite; }
+.t3 .test-ins     { animation: t3TestInsert 15s infinite; }
+.t3 .cov-before   { animation: t3CovBefore  15s infinite; }
+.t3 .cov-after    { animation: t3CovAfter   15s infinite; }
+
+@keyframes t3UpdOld {
+  0%,  3%   { background: transparent; color: inherit; text-decoration: none; }
+  7%, 100%  { background: var(--del-bg); color: var(--del-fg); text-decoration: line-through; }
+}
+@keyframes t3UpdNew {
+  0%,  7%   { opacity: 0; background: transparent; }
+  13%, 100% { opacity: 1; background: var(--add-bg); }
+}
+@keyframes t3TestInsert {
+  0%,  23%  { opacity: 0; background: transparent; }
+  33%, 100% { opacity: 1; background: var(--add-bg); }
+}
+/* The old test covers 3 of the 4 lines; once the new assertion lands it covers all 4. */
+@keyframes t3CovBefore {
+  0%,  33%  { opacity: 1; }
+  38%, 100% { opacity: 0; }
+}
+@keyframes t3CovAfter {
+  0%,  33%  { opacity: 0; }
+  38%, 100% { opacity: 1; }
+}
+
+.cov-meter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 16px 20px 0;
+  padding-top: 10px;
+  border-top: 1px dashed var(--border-strong);
+  font-family: var(--sans);
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+.cov-meter code { font-size: 0.95em; }
+.cov-values { display: inline-grid; font-family: var(--mono); font-weight: 500; }
+.cov-values > span { grid-area: 1 / 1; padding: 1px 8px; border-radius: 999px; }
+.cov-before { color: var(--del-fg); background: var(--del-bg-soft); }
+.cov-after  { color: #2e6b2c; background: var(--add-bg); }
 
 /* ===========================================================
    TEXT SECTIONS
@@ -1001,6 +1048,16 @@ tr.repo-row.open .caret { transform: rotate(45deg); }
   margin: -10px 0 10px;
 }
 
+/* Developer tests: reference row, unranked, set apart like the paper's grey row */
+.leaderboard-table tbody tr.lb-reference td {
+  background: var(--bg-alt);
+  color: var(--ink-soft);
+  border-top: 1px solid var(--border-strong);
+}
+.leaderboard-table tbody tr.lb-reference td:nth-child(2) { font-style: italic; }
+.lb-note-mark { color: var(--muted); margin-left: 2px; }
+.lb-footnotes { font-size: 0.82rem; color: var(--muted); margin: 10px 0 0; }
+
 .metric-defs { margin-top: 16px; font-size: 0.9rem; color: var(--ink-soft); }
 .metric-defs summary { cursor: pointer; color: var(--muted); font-family: var(--sans); }
 .metric-defs dl { margin-top: 10px; }
@@ -1113,6 +1170,18 @@ tr.repo-row.open .caret { transform: rotate(45deg); }
   .stat-grid { grid-template-columns: 1fr; }
 }
 
+/* Phones: keep code lines unwrapped; a long line scrolls inside its panel and the
+   diff highlights still span the full (scrolled) width. */
+@media (max-width: 480px) {
+  .code {
+    padding: 0 12px;
+    overflow-x: auto;
+    display: grid;
+    grid-template-columns: minmax(100%, max-content);
+  }
+  .code .ln { white-space: pre; font-size: 10.5px; }
+}
+
 /* Show the finished example diffs without animation for reduced-motion users. */
 @media (prefers-reduced-motion: reduce) {
   .hero-figure .ln, .hero-figure .multi { animation: none !important; }
@@ -1122,6 +1191,9 @@ tr.repo-row.open .caret { transform: rotate(45deg); }
   .hero-figure .prod-new, .hero-figure .test-new, .hero-figure .prod-ins,
   .hero-figure .prod-upd-new { background: var(--add-bg); }
   .hero-figure .test-ins { background: var(--add-bg-soft); }
+  .hero-figure .t3 .test-ins { background: var(--add-bg); }
+  .hero-figure .cov-before { animation: none !important; opacity: 0; }
+  .hero-figure .cov-after { animation: none !important; opacity: 1; }
 }
 .leaderboard-table td, .leaderboard-table th { white-space: nowrap; }
 .lb-tabs { flex-wrap: wrap; }

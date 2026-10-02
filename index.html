@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>TestEvo-Bench — an executable, live benchmark for test and code co-evolution</title>
   <meta name="description" content="TestEvo-Bench is an executable, live benchmark of test and code co-evolution mined from open-source Java projects: 3,020 tasks across test generation, test update and test refinement, scored by execution, coverage and mutation, with time filtering for contamination-aware evaluation.">
-  <link rel="stylesheet" href="static/style.css?v=202609281714">
+  <link rel="stylesheet" href="static/style.css?v=202610020028">
 </head>
 <body>
 
@@ -26,7 +26,7 @@
 </nav>
 
 <!-- =============================================================
-     TAB: OVERVIEW  (hero + abstract + example + stats)
+     TAB: OVERVIEW  (hero + abstract + examples + stats)
 ============================================================= -->
 <div class="tab-panel active" id="panel-overview">
 
@@ -53,10 +53,10 @@
       restricted to commits made after a model's training cutoff.
     </p>
     <div class="track-cards">
-      <div class="track-card tu"><span class="track-tag tu">update</span>
-        <p>A code change breaks an existing test. Update it so it passes on the new code and fails on the old code.</p></div>
       <div class="track-card tg"><span class="track-tag tg">generation</span>
         <p>A code change adds or changes behaviour. Write a new test that passes on the new code and fails on the old code.</p></div>
+      <div class="track-card tu"><span class="track-tag tu">update</span>
+        <p>A code change breaks an existing test. Update it so it passes on the new code and fails on the old code.</p></div>
       <div class="track-card tr"><span class="track-tag tr">refinement</span>
         <p>A test already passes. Improve it so it covers more of the changed code.</p></div>
     </div>
@@ -64,74 +64,30 @@
       The current snapshot has <strong>3,020 tasks</strong> from 196 repositories with commits
       from January 2019 to June 2026, and a <strong>584-task Lite subset</strong> for
       cheaper evaluation. Beyond pass/fail, each test is scored by the coverage it
-      reaches and the share of mutants it kills. On Lite, all four agent configurations
-      we evaluated succeed on 98.6&ndash;99.1% of tasks, so the leaderboard ranks them by
-      an overall score that also counts coverage and mutation.
+      reaches and the share of mutants it kills. On Lite, the six agent configurations
+      we evaluated (mini-SWE-agent and Claude Code with four models) succeed on
+      98.3&ndash;99.1% of tasks and reach an overall score of 79.8&ndash;84.4%, on par
+      with the developers' own tests (81.8%). The leaderboard therefore ranks them by
+      this overall score, which also counts coverage and mutation.
     </p>
 
     <div class="hero-figure embedded">
-    <div class="track-block t1">
-      <div class="track-heading">
-        <h2>Example — test update</h2>
-        <span class="desc">Production code changes; the paired test must be updated to compile, exercise the new behavior, and pass. <em>Example from <code>gazbert/bxbot</code> v1.4.0.</em></span>
-      </div>
-      <div class="stage">
-
-        <div class="panel">
-          <span class="track-badge">production</span>
-          <span class="panel-label">BotStatus.java</span>
-          <div class="code">
-            <div class="ln"><span class="anno">@Override</span></div>
-            <div class="ln"><span class="kw">public</span> <span class="ty">String</span> <span class="fn">toString</span>() {</div>
-            <div class="ln">    <span class="kw">return</span> <span class="ty">MoreObjects</span>.<span class="fn">toStringHelper</span>(<span class="kw">this</span>)</div>
-            <div class="ln">        .<span class="fn">add</span>(<span class="str">"botId"</span>, botId)</div>
-            <div class="ln">        .<span class="fn">add</span>(<span class="str">"displayName"</span>, displayName)</div>
-            <div class="ln">        .<span class="fn">add</span>(<span class="str">"status"</span>, status)</div>
-            <div class="ln prod-ins">        .<span class="fn">add</span>(<span class="str">"datetime"</span>, <span class="fn">getDatetime</span>())</div>
-            <div class="ln">        .<span class="fn">toString</span>();</div>
-            <div class="ln">}</div>
-          </div>
-        </div>
-
-        <div class="arrow">
-          <svg viewBox="0 0 48 24" fill="none" stroke="currentColor" stroke-width="1.4">
-            <line x1="2" y1="12" x2="42" y2="12"/>
-            <polyline points="34,5 44,12 34,19"/>
-          </svg>
-        </div>
-
-        <div class="panel">
-          <span class="track-badge">test update</span>
-          <span class="panel-label">TestBotStatus.java</span>
-          <div class="code">
-            <div class="ln"><span class="anno">@Test</span></div>
-            <div class="ln"><span class="kw">public</span> <span class="ty">void</span> <span class="fn">testToStringWorksAsExpected</span>() {</div>
-            <div class="ln test-old">    <span class="kw">final</span> <span class="ty">BotStatus</span> botStatus = <span class="kw">new</span> <span class="ty">BotStatus</span>(BOT_ID, DISPLAY_NAME, STATUS);</div>
-            <div class="ln test-old">    <span class="fn">assertEquals</span>(</div>
-            <div class="ln test-old">        <span class="str">"BotStatus{botId=avro-707_1, displayName=Avro 707, status=running}"</span>, botStatus.<span class="fn">toString</span>());</div>
-            <div class="ln test-new">    <span class="kw">final</span> <span class="ty">BotStatus</span> botStatus = <span class="kw">new</span> <span class="ty">BotStatus</span>(BOT_ID, DISPLAY_NAME, STATUS, DATE);</div>
-            <div class="ln test-new">    <span class="fn">assertTrue</span>(botStatus.<span class="fn">toString</span>().<span class="fn">startsWith</span>(</div>
-            <div class="ln test-new">        <span class="str">"BotStatus{botId=avro-707_1, displayName=Avro 707, status=running, datetime="</span>));</div>
-            <div class="ln">}</div>
-          </div>
-        </div>
-      </div>
-    </div>
-
     <div class="track-block t2">
       <div class="track-heading">
         <h2>Example — test generation</h2>
-        <span class="desc">Production code changes; a new test must be written to compile, exercise the change, and pass. <em>Example from <code>casbin/jcasbin</code> v1.99.0.</em></span>
+        <span class="desc"><code>UrlTemplate.put(Map)</code> called <code>putAll</code> on its own argument, so the parameters were silently dropped. The fix passes each entry to <code>put(String, String)</code>, and the developer adds a test that checks the rendered URL contains them. <em>Task from <code>FluentLenium/FluentLenium</code>, January 2019 (<a href="https://github.com/FluentLenium/FluentLenium/compare/a3fefa6b955c1c2e7a28d66e7e22efe01527d616...372393d3f4f62f1e3d25b20a67906e00845c4eea" target="_blank" rel="noopener">diff</a>).</em></span>
       </div>
       <div class="stage">
 
         <div class="panel">
           <span class="track-badge">production</span>
-          <span class="panel-label">Util.java</span>
+          <span class="panel-label">UrlTemplate.java</span>
           <div class="code">
-            <div class="ln"><span class="kw">public static</span> <span class="ty">boolean</span> <span class="fn">hasEval</span>(<span class="ty">String</span> exp) {</div>
-            <div class="ln prod-upd-old">    <span class="kw">return</span> evalReg.<span class="fn">matcher</span>(exp).<span class="fn">matches</span>();</div>
-            <div class="ln prod-upd-new">    <span class="kw">return</span> evalReg.<span class="fn">matcher</span>(exp).<span class="fn">find</span>();</div>
+            <div class="ln"><span class="kw">public</span> <span class="ty">UrlTemplate</span> <span class="fn">put</span>(</div>
+            <div class="ln">    <span class="ty">Map</span>&lt;<span class="ty">String</span>, <span class="ty">String</span>&gt; values) {</div>
+            <div class="ln prod-upd-old">  values.<span class="fn">putAll</span>(values);</div>
+            <div class="ln prod-upd-new">  values.<span class="fn">forEach</span>(<span class="kw">this</span>::put);</div>
+            <div class="ln">  <span class="kw">return this</span>;</div>
             <div class="ln">}</div>
           </div>
         </div>
@@ -145,21 +101,139 @@
 
         <div class="panel">
           <span class="track-badge">test generation</span>
-          <span class="panel-label">UtilTest.java</span>
+          <span class="panel-label">UrlTemplateTest.java</span>
           <div class="code">
-            <div class="ln"><span class="anno">@Test</span></div>
-            <div class="ln"><span class="kw">public void</span> <span class="fn">testReplaceEval</span>() {</div>
-            <div class="ln">    <span class="ty">Util</span>.<span class="fn">logPrint</span>(<span class="ty">Util</span>.<span class="fn">replaceEval</span>(<span class="str">"eval(test)"</span>, <span class="str">"testEval"</span>));</div>
-            <div class="ln">}</div>
+            <div class="ln"><span class="kw">public class</span> <span class="ty">UrlTemplateTest</span> {</div>
+            <div class="ln cmt">  // ... existing tests</div>
             <div class="multi test-ins">
               <div class="ln"> </div>
-              <div class="ln"><span class="anno">@Test</span></div>
-              <div class="ln"><span class="kw">public void</span> <span class="fn">testHasEval</span>() {</div>
-              <div class="ln">    <span class="fn">assertTrue</span>(<span class="fn">hasEval</span>(<span class="str">"eval(test)"</span>));</div>
-              <div class="ln">    <span class="fn">assertTrue</span>(<span class="fn">hasEval</span>(<span class="str">"r_act == p_act &amp;&amp; eval(p_sub_rule) &amp;&amp; eval(p_obj_rule)"</span>));</div>
-              <div class="ln">    <span class="fn">assertFalse</span>(<span class="fn">hasEval</span>(<span class="str">"evaltest"</span>));</div>
-              <div class="ln">}</div>
+              <div class="ln">  <span class="anno">@Test</span></div>
+              <div class="ln">  <span class="kw">public void</span> <span class="fn">testSetParametersFromMap</span>() {</div>
+              <div class="ln">    <span class="ty">UrlTemplate</span> template = <span class="kw">new</span> <span class="ty">UrlTemplate</span>(</div>
+              <div class="ln">      <span class="str">"/abc/{param1}/def{?/param2}/ghi{?/param3}"</span>);</div>
+              <div class="ln">    template.<span class="fn">put</span>(<span class="ty">Map</span>.<span class="fn">of</span>(</div>
+              <div class="ln">        <span class="str">"param1"</span>, <span class="str">"test1"</span>, <span class="str">"param3"</span>, <span class="str">"test3"</span>));</div>
+              <div class="ln">    <span class="fn">assertThat</span>(template.<span class="fn">render</span>())</div>
+              <div class="ln">        .<span class="fn">isEqualTo</span>(<span class="str">"/abc/test1/def/ghi/test3"</span>);</div>
+              <div class="ln">  }</div>
             </div>
+            <div class="ln">}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="track-block t1">
+      <div class="track-heading">
+        <h2>Example — test update</h2>
+        <span class="desc"><code>ExclusionChecker.check</code> now sorts the invalid exclusions it reports, so the existing test fails on the new code, and the developer reorders its expected list. <em>Task from <code>apache/maven-dependency-plugin</code>, April 2024 (<a href="https://github.com/apache/maven-dependency-plugin/compare/27458d9dca1473cabaca00e0060cd258813cfc0a...61d1162a64577549a8af5e43591fe5782c8fbd31" target="_blank" rel="noopener">diff</a>).</em></span>
+      </div>
+      <div class="stage">
+
+        <div class="panel">
+          <span class="track-badge">production</span>
+          <span class="panel-label">ExclusionChecker.java</span>
+          <div class="code">
+            <div class="ln"><span class="ty">void</span> <span class="fn">check</span>(<span class="ty">Coordinates</span> artifact,</div>
+            <div class="ln">    <span class="ty">Set</span>&lt;<span class="ty">Coordinates</span>&gt; excludes,</div>
+            <div class="ln">    <span class="ty">Set</span>&lt;<span class="ty">Coordinates</span>&gt; actualDependencies) {</div>
+            <div class="ln">  <span class="ty">List</span>&lt;<span class="ty">Coordinates</span>&gt; invalidExclusions =</div>
+            <div class="ln">      excludes.<span class="fn">stream</span>()</div>
+            <div class="ln">        .<span class="fn">filter</span>(exclude -&gt; actualDependencies</div>
+            <div class="ln">            .<span class="fn">stream</span>().<span class="fn">noneMatch</span>(</div>
+            <div class="ln">                exclude.<span class="fn">getExclusionPattern</span>()))</div>
+            <div class="ln prod-ins">        .<span class="fn">sorted</span>()</div>
+            <div class="ln">        .<span class="fn">collect</span>(<span class="fn">toList</span>());</div>
+            <div class="ln">  <span class="kw">if</span> (!invalidExclusions.<span class="fn">isEmpty</span>()) {</div>
+            <div class="ln">    violations.<span class="fn">put</span>(artifact, invalidExclusions);</div>
+            <div class="ln">  }</div>
+            <div class="ln">}</div>
+          </div>
+        </div>
+
+        <div class="arrow">
+          <svg viewBox="0 0 48 24" fill="none" stroke="currentColor" stroke-width="1.4">
+            <line x1="2" y1="12" x2="42" y2="12"/>
+            <polyline points="34,5 44,12 34,19"/>
+          </svg>
+        </div>
+
+        <div class="panel">
+          <span class="track-badge">test update</span>
+          <span class="panel-label">ExclusionCheckerTest.java</span>
+          <div class="code">
+            <div class="ln"><span class="anno">@Test</span></div>
+            <div class="ln"><span class="kw">public void</span> <span class="fn">shallReportInvalidExclusions</span>() {</div>
+            <div class="ln cmt">  // excludes: one, two, three, four</div>
+            <div class="ln cmt">  // actual dependencies: one, four</div>
+            <div class="ln">  ...</div>
+            <div class="ln">  checker.<span class="fn">check</span>(artifact, excludes,</div>
+            <div class="ln">      actualDependencies);</div>
+            <div class="ln">  <span class="fn">assertThat</span>(checker.<span class="fn">getViolations</span>())</div>
+            <div class="ln">    .<span class="fn">containsEntry</span>(artifact, <span class="ty">Arrays</span>.<span class="fn">asList</span>(</div>
+            <div class="ln test-old">      <span class="fn">coordinates</span>(<span class="str">"com.example"</span>, <span class="str">"two"</span>),</div>
+            <div class="ln test-old">      <span class="fn">coordinates</span>(<span class="str">"com.example"</span>, <span class="str">"three"</span>)</div>
+            <div class="ln test-new">      <span class="fn">coordinates</span>(<span class="str">"com.example"</span>, <span class="str">"three"</span>),</div>
+            <div class="ln test-new">      <span class="fn">coordinates</span>(<span class="str">"com.example"</span>, <span class="str">"two"</span>)</div>
+            <div class="ln">    ));</div>
+            <div class="ln">}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="track-block t3">
+      <div class="track-heading">
+        <h2>Example — test refinement</h2>
+        <span class="desc"><code>AccountBuilder.addEmail</code> now accepts addresses that already carry the <code>mailto:</code> prefix. The old test still passes on the new code but never reaches the new branch; the developer adds a prefixed address, so the test covers all 4 lines of the changed method instead of 3. <em>Task from <code>shred/acme4j</code>, April 2023 (<a href="https://github.com/shred/acme4j/compare/09a72d606b56fe44f23fe53303675c4b9d3a7b45...01a2206c62db61ab808577cbb4d95eded9572dd0" target="_blank" rel="noopener">diff</a>).</em></span>
+      </div>
+      <div class="stage">
+
+        <div class="panel">
+          <span class="track-badge">production</span>
+          <span class="panel-label">AccountBuilder.java</span>
+          <div class="code">
+            <div class="ln"><span class="kw">public</span> <span class="ty">AccountBuilder</span> <span class="fn">addEmail</span>(</div>
+            <div class="ln">    <span class="ty">String</span> email) {</div>
+            <div class="ln prod-upd-old">  <span class="fn">addContact</span>(<span class="str">"mailto:"</span> + email);</div>
+            <div class="ln prod-upd-new">  <span class="kw">if</span> (email.<span class="fn">startsWith</span>(<span class="str">"mailto:"</span>)) {</div>
+            <div class="ln prod-upd-new">    <span class="fn">addContact</span>(email);</div>
+            <div class="ln prod-upd-new">  } <span class="kw">else</span> {</div>
+            <div class="ln prod-upd-new">    <span class="fn">addContact</span>(<span class="str">"mailto:"</span> + email);</div>
+            <div class="ln prod-upd-new">  }</div>
+            <div class="ln">  <span class="kw">return this</span>;</div>
+            <div class="ln">}</div>
+          </div>
+        </div>
+
+        <div class="arrow">
+          <svg viewBox="0 0 48 24" fill="none" stroke="currentColor" stroke-width="1.4">
+            <line x1="2" y1="12" x2="42" y2="12"/>
+            <polyline points="34,5 44,12 34,19"/>
+          </svg>
+        </div>
+
+        <div class="panel">
+          <span class="track-badge">test refinement</span>
+          <span class="panel-label">AccountBuilderTest.java</span>
+          <div class="code">
+            <div class="ln"><span class="anno">@Test</span></div>
+            <div class="ln"><span class="kw">public void</span> <span class="fn">testEmailAddresses</span>() {</div>
+            <div class="ln">  <span class="kw">var</span> builder =</div>
+            <div class="ln">      <span class="ty">Mockito</span>.<span class="fn">spy</span>(<span class="ty">AccountBuilder</span>.<span class="kw">class</span>);</div>
+            <div class="ln">  builder.<span class="fn">addEmail</span>(<span class="str">"foo@example.com"</span>);</div>
+            <div class="ln">  <span class="ty">Mockito</span>.<span class="fn">verify</span>(builder).<span class="fn">addContact</span>(</div>
+            <div class="ln">      <span class="ty">Mockito</span>.<span class="fn">eq</span>(<span class="str">"mailto:foo@example.com"</span>));</div>
+            <div class="multi test-ins">
+              <div class="ln">  builder.<span class="fn">addEmail</span>(<span class="str">"mailto:bar@example.com"</span>);</div>
+              <div class="ln">  <span class="ty">Mockito</span>.<span class="fn">verify</span>(builder).<span class="fn">addContact</span>(</div>
+              <div class="ln">      <span class="ty">Mockito</span>.<span class="fn">eq</span>(<span class="str">"mailto:bar@example.com"</span>));</div>
+            </div>
+            <div class="ln">}</div>
+          </div>
+          <div class="cov-meter" aria-label="Covered lines of addEmail: 3 of 4 before, 4 of 4 after the refinement">
+            <span class="cov-label">covered lines of <code>addEmail</code></span>
+            <span class="cov-values"><span class="cov-before">3 / 4</span><span class="cov-after">4 / 4</span></span>
           </div>
         </div>
       </div>
@@ -240,6 +314,7 @@
       </tbody>
     </table>
     </div>
+    <p class="lb-footnotes" id="lb-footnotes" style="display:none"></p>
 
     <details class="metric-defs">
       <summary>Metric definitions</summary>
@@ -365,7 +440,7 @@
   });
 })();
 </script>
-<script src="static/explorer.js?v=202609281714"></script>
-<script src="static/leaderboard.js?v=202609281714"></script>
+<script src="static/explorer.js?v=202610020028"></script>
+<script src="static/leaderboard.js?v=202610020028"></script>
 </body>
 </html>
