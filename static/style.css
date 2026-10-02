@@ -1055,6 +1055,11 @@ tr.repo-row.open .caret { transform: rotate(45deg); }
   border-top: 1px solid var(--border-strong);
 }
 .leaderboard-table tbody tr.lb-reference td:nth-child(2) { font-style: italic; }
+/* Ten columns: tighter cells so the table fits the 1080px container */
+.leaderboard-table thead th, .leaderboard-table tbody td { padding-left: 10px; padding-right: 10px; }
+.leaderboard-table thead th { letter-spacing: 0.06em; }
+/* Overlap columns: a separate group after Overall */
+.leaderboard-table .col-overlap { border-left: 1px solid var(--border-strong); }
 
 .metric-defs { margin-top: 16px; font-size: 0.9rem; color: var(--ink-soft); }
 .metric-defs summary { cursor: pointer; color: var(--muted); font-family: var(--sans); }

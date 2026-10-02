@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>TestEvo-Bench — an executable, live benchmark for test and code co-evolution</title>
   <meta name="description" content="TestEvo-Bench is an executable, live benchmark of test and code co-evolution mined from open-source Java projects: 3,020 tasks across test generation, test update and test refinement, scored by execution, coverage and mutation, with time filtering for contamination-aware evaluation.">
-  <link rel="stylesheet" href="static/style.css?v=202610020028">
+  <link rel="stylesheet" href="static/style.css?v=202610020155">
 </head>
 <body>
 
@@ -306,11 +306,13 @@
           <th>CovOnPass</th>
           <th>MutOnPass</th>
           <th>Overall</th>
+          <th class="col-overlap">CovOverlapped</th>
+          <th>MutOverlapped</th>
           <th>Tasks</th>
         </tr>
       </thead>
       <tbody id="leaderboard-tbody">
-        <tr><td colspan="8" class="loading">Loading leaderboard…</td></tr>
+        <tr><td colspan="10" class="loading">Loading leaderboard…</td></tr>
       </tbody>
     </table>
     </div>
@@ -439,7 +441,7 @@
   });
 })();
 </script>
-<script src="static/explorer.js?v=202610020028"></script>
-<script src="static/leaderboard.js?v=202610020028"></script>
+<script src="static/explorer.js?v=202610020155"></script>
+<script src="static/leaderboard.js?v=202610020155"></script>
 </body>
 </html>
